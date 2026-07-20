@@ -252,7 +252,7 @@
       const li = document.createElement('li');
       li.dataset.word = w.word;
       li.title = '클릭하면 이 단어만 그리드에서 바로 확인할 수 있어요';
-      const thumb = w.image ? '<img class="wf-thumb" src="images/' + w.image + '" alt="' + w.word + '" data-word="' + w.word + '" onerror="this.remove()">' : '';
+      const thumb = w.image ? '<img class="wf-thumb" src="' + IMG_BASE + w.image + '" alt="' + w.word + '" data-word="' + w.word + '" onerror="this.remove()">' : '';
       li.innerHTML =
         '<span class="wf-item-number">' + (i + 1) + '.</span>' +
         thumb +
@@ -285,7 +285,7 @@
 
   function renderAnswerGrid(words) {
     const rows = words.map(w => {
-      const thumbImg = w.image ? '<img src="images/' + w.image + '" alt="' + w.word + '" onerror="this.remove()">' : '';
+      const thumbImg = w.image ? '<img src="' + IMG_BASE + w.image + '" alt="' + w.word + '" onerror="this.remove()">' : '';
       return '<tr>' +
         '<td class="cell-thumb">' + thumbImg + '</td>' +
         '<td class="cell-word">' + w.word + '<div class="cell-pronun">' + (w.roman || '') + '</div></td>' +

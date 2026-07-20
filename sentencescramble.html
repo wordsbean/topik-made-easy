@@ -197,7 +197,7 @@
     printTitle.textContent = `🔀 ${typeof t === 'function' ? t('navSentencescramble') : '문장 스크램블'} · ${tGradeBadge(currentGrade)} ${tBatchBadge(puzzleCount)}`;
 
     ssGrid.innerHTML = currentItems.map((item, idx) => {
-      const thumb = item.image ? `<img class="ss-thumb" src="images/${item.image}" alt="${item.word}" data-word="${item.word}" onerror="this.remove()">` : '';
+      const thumb = item.image ? `<img class="ss-thumb" src="${IMG_BASE}${item.image}" alt="${item.word}" data-word="${item.word}" onerror="this.remove()">` : '';
       const romanHint = (typeof romanizeSentence === 'function') ? romanizeSentence(item.korSentence) : '';
 
       const slotsHtml = item.tokens.map((t, i) =>
@@ -294,7 +294,7 @@
   // =========================================================
   function renderAnswerGrid(items) {
     const rows = items.map((w, idx) => {
-      const thumbImg = w.image ? `<img src="images/${w.image}" alt="${w.word}" onerror="this.remove()">` : '';
+      const thumbImg = w.image ? `<img src="${IMG_BASE}${w.image}" alt="${w.word}" onerror="this.remove()">` : '';
       return `
         <tr data-item="${idx}">
           <td class="cell-thumb">${thumbImg}</td>

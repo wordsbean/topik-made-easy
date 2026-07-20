@@ -294,6 +294,11 @@ main.pgh-main {
     display: block;
 }
 
+.pgh-cell-thumb:empty {
+    border: none;
+    background: none;
+}
+
 .pgh-cell-word {
     font-weight: 700;
     color: var(--ink);
@@ -371,5 +376,10 @@ main.pgh-main {
     th.pgh-cell-actions,
     .pgh-detail-header-controls {
         display: none !important;
+    }
+
+    .pgh-cell-thumb:empty {
+        border: none !important;
+        background: none !important;
     }
 }

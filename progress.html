@@ -245,7 +245,7 @@
     const w = CARDS_BY_ID[id];
     if (!w) return '';
     const isFav = getFavorites().includes(id);
-    const thumbImg = w.image ? `<img src="images/${w.image}" alt="${w.word}" onerror="this.remove()">` : '';
+    const thumbImg = w.image ? `<img src="${IMG_BASE}${w.image}" alt="${w.word}" onerror="this.remove()">` : '';
     const restoreBtn = detailMode === 'dismissed'
       ? `<button type="button" class="pgh-icon-btn pgh-restore-btn" data-id="${id}" title="다시 보기로 복구">↩</button>`
       : `<button type="button" class="pgh-icon-btn pgh-fav-btn ${isFav ? 'is-active' : ''}" data-id="${id}" title="즐겨찾기">⭐</button>`;

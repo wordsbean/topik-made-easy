@@ -9,6 +9,11 @@
 
 const USER_LANG_KEY = 'lingoPowerHangul_userLang';
 
+// 단어 썸네일 이미지는 이제 GitHub 저장소(topik-made-easy)에 들어가 있어서,
+// 로컬 상대경로("images/...") 대신 jsDelivr CDN을 거쳐서 불러옵니다.
+// (배포 브랜치/저장소가 바뀌면 이 한 줄만 고치면 전체에 반영됩니다)
+const IMG_BASE = 'https://cdn.jsdelivr.net/gh/wordsbean/topik-made-easy@main/images/';
+
 // level0.html의 설정 모달(#settings-lang-select)과 옵션 순서를 맞췄습니다.
 // Group A: topik_lang_XX.js에 단어+뜻 번역이 미리 준비되어 있는 "정식 지원" 10개 언어.
 const HANGUL_LANG_NAMES = {

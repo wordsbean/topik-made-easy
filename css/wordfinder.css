@@ -113,6 +113,7 @@ body.mode-answer .answer-grid { display: block; }
 .answer-grid .cell-word { font-weight: 700; }
 .cell-pronun { font-size: 11px; color: var(--wc-teal); margin-top: 2px; }
 .answer-grid .cell-thumb img { width: 36px; height: 36px; border-radius: 6px; object-fit: cover; display: block; }
+.answer-grid .cell-thumb:empty { border: none; background: none; }
 
 .pagination-controls {
     position: fixed; bottom: 0; left: 0; right: 0;

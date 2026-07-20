@@ -222,7 +222,7 @@
     printTitle.textContent = `📝 ${typeof t === 'function' ? t('fillblankTitle') : '다음에 들어갈 단어는'} · ${tGradeBadge(currentGrade)} ${tBatchBadge(puzzleCount)}`;
 
     fbGrid.innerHTML = currentItems.map((item, idx) => {
-      const thumb = item.image ? `<img class="fb-thumb" src="images/${item.image}" alt="${item.word}" data-word="${item.word}" onerror="this.remove()">` : '';
+      const thumb = item.image ? `<img class="fb-thumb" src="${IMG_BASE}${item.image}" alt="${item.word}" data-word="${item.word}" onerror="this.remove()">` : '';
       const choicesHtml = item.choices.map((c, ci) => `
         <button type="button" class="fb-choice-btn" data-item="${idx}" data-word="${c.text}" data-correct="${c.isCorrect}">
           <span class="fb-choice-letter">${CHOICE_LETTERS[ci]}.</span>
@@ -315,7 +315,7 @@
   // =========================================================
   function renderAnswerGrid(items) {
     const rows = items.map(w => {
-      const thumbImg = w.image ? `<img src="images/${w.image}" alt="${w.word}" onerror="this.remove()">` : '';
+      const thumbImg = w.image ? `<img src="${IMG_BASE}${w.image}" alt="${w.word}" onerror="this.remove()">` : '';
       return `
         <tr>
           <td class="cell-thumb">${thumbImg}</td>

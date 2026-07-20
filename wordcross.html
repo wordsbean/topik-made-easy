@@ -288,7 +288,7 @@
       words.forEach(w => {
         const num = numberMap[w.row + ',' + w.col];
         const li = document.createElement('li');
-        const thumb = w.meta.image ? '<img class="clue-thumb" src="images/' + w.meta.image + '" alt="' + w.word + '" data-word="' + w.word + '" onerror="this.remove()">' : '';
+        const thumb = w.meta.image ? '<img class="clue-thumb" src="' + IMG_BASE + w.meta.image + '" alt="' + w.word + '" data-word="' + w.word + '" onerror="this.remove()">' : '';
         li.innerHTML =
           '<span class="clue-item-number">' + num + '.</span>' +
           thumb +
@@ -327,7 +327,7 @@
   function renderAnswerGrid(placed, numberMap) {
     const sorted = [...placed].sort((a, b) => numberMap[a.row + ',' + a.col] - numberMap[b.row + ',' + b.col]);
     const rows = sorted.map(w => {
-      const thumbImg = w.meta.image ? '<img src="images/' + w.meta.image + '" alt="' + w.word + '" onerror="this.remove()">' : '';
+      const thumbImg = w.meta.image ? '<img src="' + IMG_BASE + w.meta.image + '" alt="' + w.word + '" onerror="this.remove()">' : '';
       return '<tr>' +
         '<td class="cell-thumb">' + thumbImg + '</td>' +
         '<td class="cell-word">' + w.word + '<div class="cell-pronun">' + (w.meta.roman || '') + '</div></td>' +

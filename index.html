@@ -476,9 +476,9 @@ const RR_JONG_LIST = ['','ㄱ','ㄲ','ㄳ','ㄴ','ㄵ','ㄶ','ㄷ','ㄹ','ㄺ','
       imageArea.style.backgroundImage = '';
       if (w.image) {
         const img = new Image();
-        img.onload = () => { imageArea.style.backgroundImage = "url('images/" + w.image + "')"; };
+        img.onload = () => { imageArea.style.backgroundImage = "url('" + IMG_BASE + w.image + "')"; };
         img.onerror = () => { imageArea.classList.add('no-image'); };
-        img.src = 'images/' + w.image;
+        img.src = IMG_BASE + w.image;
       } else {
         imageArea.classList.add('no-image');
       }

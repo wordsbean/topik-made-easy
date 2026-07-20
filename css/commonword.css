@@ -299,6 +299,7 @@ body.mode-answer .answer-grid { display: block; }
 .answer-grid .cell-word { font-weight: 700; }
 .cell-pronun { font-size: 11px; color: var(--cw-teal); margin-top: 2px; }
 .answer-grid .cell-thumb img { width: 36px; height: 36px; border-radius: 6px; object-fit: cover; display: block; }
+.answer-grid .cell-thumb:empty { border: none; background: none; }
 .answer-speak-btn { width: 28px; height: 28px; border-radius: 50%; border: none; background: var(--cw-primary-light); color: var(--cw-primary); font-size: 13px; cursor: pointer; }
 
 /* ---------- 하단 컨트롤 ---------- */
