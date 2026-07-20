@@ -1,0 +1,44 @@
+/* ============================================================
+   이미지 없을 때 폴백 렌더링
+   - 카드 박스를 배경색으로 채움 (품사별 그라디언트)
+   - 3D 텍스트: 글자색 검정 + 흰색 테두리(stroke)
+   ============================================================ */
+
+/* 1) 박스 배경 (이미지 없을 때 클래스로 토글) */
+.card-image.no-image {
+  background: linear-gradient(160deg, var(--pos-color-light, #b8c4e0), var(--pos-color-dark, #6e78a0));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+/* 품사별 색상 (data-pos 속성으로 지정) */
+.card-image.no-image[data-pos="명사"] { --pos-color-light:#8ba8f5; --pos-color-dark:#5b86e5; }
+.card-image.no-image[data-pos="동사"] { --pos-color-light:#91d6b2; --pos-color-dark:#48b285; }
+.card-image.no-image[data-pos="형용사"] { --pos-color-light:#f7be81; --pos-color-dark:#eb9544; }
+.card-image.no-image[data-pos="부사"] { --pos-color-light:#c6a0eb; --pos-color-dark:#9c6bd6; }
+
+/* 2) 3D 텍스트 공통 (검정 글자 + 흰 테두리) */
+.text-3d {
+  color: #000;
+  -webkit-text-stroke: 6px #fff;
+  paint-order: stroke fill;   /* 테두리가 글자 뒤로 깔끔하게 깔리도록 */
+  font-weight: 800;
+  text-align: center;
+  line-height: 1.25;
+}
+
+/* 크기별 변형 */
+.text-3d.text-3d--word   { font-size: clamp(28px, 6vw, 48px); -webkit-text-stroke-width: 7px; }
+.text-3d.text-3d--meaning{ font-size: clamp(16px, 3vw, 22px); -webkit-text-stroke-width: 4px; }
+.text-3d.text-3d--korean { font-size: clamp(20px, 4vw, 32px); -webkit-text-stroke-width: 5px; color:#ffd633; }
+.text-3d.text-3d--pos    { font-size: clamp(12px, 2.2vw, 16px); -webkit-text-stroke-width: 3px; opacity:.9; }
+
+/* 3) no-image일 때 캡션을 이미지 영역 안쪽 중앙에 쌓아 배치 */
+.no-image .caption-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px;
+}

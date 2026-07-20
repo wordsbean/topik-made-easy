@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lingo Power: Hangul Learning for TOPIK</title>
+<meta name="description" content="Lingo Power : Hangul Learning for TOPIK with Flash Cards and Puzzles">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="images/icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Song+Myung&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/nav-hangul.css">
+</head>
+<body>
+
+<header class="app-header">
+  <p class="brand">Lingo Power</p>
+  <h1>한글 배우기 · Hangul for TOPIK</h1>
+  <p class="tagline">Flash Cards and Puzzles로 배우는 한글 자모</p>
+</header>
+
+<main>
+  <div class="mode-tabs">
+    <button class="mode-tab" data-mode="consonant" data-active="1">자음 · Consonants</button>
+    <button class="mode-tab" data-mode="vowel">모음 · Vowels</button>
+    <button class="mode-tab" data-mode="build">단어 만들기 · Build</button>
+  </div>
+
+  <div id="letter-grid"></div>
+
+  <div id="practice-row" class="practice-row">
+    <div class="panel">
+      <svg id="demo" width="180" height="180" viewBox="0 0 220 220">
+        <rect x="1" y="1" width="218" height="218" fill="none" stroke="#E3DDCF" stroke-width="1"/>
+        <line x1="110" y1="0" x2="110" y2="220" stroke="#E3DDCF" stroke-dasharray="4 4"/>
+        <line x1="0" y1="110" x2="220" y2="110" stroke="#E3DDCF" stroke-dasharray="4 4"/>
+        <g id="demo-strokes"></g>
+      </svg>
+      <p class="caption">획순 시범 · Stroke order</p>
+      <p id="letter-name"></p>
+      <button id="replay-btn">다시 보기</button>
+    </div>
+
+    <div class="panel draw-wrap">
+      <canvas id="draw" width="180" height="180"></canvas>
+      <div id="stamp">
+        <svg width="140" height="140" viewBox="0 0 140 140">
+          <circle cx="70" cy="70" r="64" fill="none" stroke="#C23B32" stroke-width="5"/>
+          <text x="70" y="62" text-anchor="middle" font-size="17" fill="#C23B32" font-weight="500">참 잘했어요</text>
+          <text x="70" y="88" text-anchor="middle" font-size="22" fill="#C23B32">★</text>
+        </svg>
+      </div>
+      <p class="caption">따라 그리기 · Trace it</p>
+      <button id="clear-btn">지우고 다시</button>
+      <p id="feedback"></p>
+    </div>
+
+    <div id="word-panel" class="panel">
+      <p class="label">이 글자가 들어간 단어</p>
+      <div id="grade-tabs" class="grade-tabs">
+        <button class="grade-btn" data-grade="1급">1급</button>
+        <button class="grade-btn" data-grade="2급">2급</button>
+        <button class="grade-btn" data-grade="3급">3급</button>
+        <button class="grade-btn" data-grade="4급">4급</button>
+        <button class="grade-btn" data-grade="5급">5급</button>
+        <button class="grade-btn" data-grade="6급">6급</button>
+      </div>
+      <div id="word-list"></div>
+    </div>
+  </div>
+
+  <div id="build-panel" class="panel build-panel" style="display:none;">
+    <p class="build-label">제시어 · Listen and spell it</p>
+    <div class="build-prompt-row">
+      <button id="build-listen-btn" class="build-listen-btn">🔊 듣기</button>
+      <p id="build-prompt-hint" class="build-prompt-hint"></p>
+      <button id="build-new-prompt-btn">새 단어</button>
+    </div>
+
+    <p class="build-label">만든 단어 · Your word</p>
+    <div id="build-word-display" class="build-word-display" tabindex="0"></div>
+
+    <div id="hangul-keyboard" class="hangul-keyboard">
+      <div class="kb-row" id="kb-row-1"></div>
+      <div class="kb-row" id="kb-row-2"></div>
+      <div class="kb-row" id="kb-row-3"></div>
+      <div class="kb-row kb-row-controls">
+        <button id="kb-shift-btn" type="button" class="kb-key kb-key-wide" data-key="shift">⇧ 쌍자음/이중모음</button>
+        <button id="kb-backspace-btn" type="button" class="kb-key kb-key-wide" data-key="backspace">⌫ 한 글자 지우기</button>
+      </div>
+    </div>
+
+    <div class="build-actions">
+      <button id="build-clear-btn">전체 지우기</button>
+      <button id="build-check-btn">확인 · Check</button>
+    </div>
+    <p id="build-result" class="build-result"></p>
+  </div>
+</main>
+
+<div id="modal-overlay" class="modal-overlay">
+  <div class="modal">
+    <button id="modal-close" class="modal-close" aria-label="닫기">✕</button>
+    <div class="modal-word-row">
+      <p id="modal-word" class="modal-word"></p>
+      <button id="modal-speak-btn" class="speak-btn" aria-label="발음 듣기">🔊</button>
+    </div>
+    <p id="modal-romanization" class="modal-romanization"></p>
+    <p id="modal-jamo" class="modal-jamo"></p>
+    <div class="lang-tabs" id="lang-tabs">
+      <button class="lang-btn" data-lang="en">English</button>
+      <button class="lang-btn" data-lang="ja">日本語</button>
+      <button class="lang-btn" data-lang="zh">中文</button>
+      <button class="lang-btn" data-lang="es">Español</button>
+      <button class="lang-btn" data-lang="fr">Français</button>
+      <button class="lang-btn" data-lang="vi">Tiếng Việt</button>
+      <button class="lang-btn" data-lang="th">ไทย</button>
+      <button class="lang-btn" data-lang="id">Indonesia</button>
+      <button class="lang-btn" data-lang="ru">Русский</button>
+      <button class="lang-btn" data-lang="ar">العربية</button>
+      <button class="lang-btn" data-lang="mn">Монгол</button>
+    </div>
+    <p id="modal-translation" class="modal-translation"></p>
+    <button id="translate-fetch-btn" class="translate-fetch-btn" style="display:none;">번역하기</button>
+    <div class="modal-trace-wrap">
+      <canvas id="modal-canvas" width="300" height="150"></canvas>
+    </div>
+    <button id="modal-clear">지우고 다시</button>
+  </div>
+</div>
+
+<script src="js/lang-pref-hangul.js"></script>
+<script src="js/ui-i18n-hangul.js"></script>
+<script src="js/data.js"></script>
+<script src="js/hangul-compose.js"></script>
+<script src="js/wordlists_by_grade.js"></script>
+<script src="js/word_translations.js"></script>
+<script src="js/app.js"></script>
+<script src="js/nav-hangul.js"></script>
+</body>
+</html>

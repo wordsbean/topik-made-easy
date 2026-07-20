@@ -1,0 +1,134 @@
+:root {
+    --wc-primary: #1e40af;
+    --wc-primary-light: #eff6ff;
+    --wc-header: #1e293b;
+    --wc-header2: #334155;
+    --wc-ink: #0f172a;
+    --wc-muted: #64748b;
+    --wc-border: #e2e8f0;
+    --wc-card: #ffffff;
+    --wc-teal: #0d9488;
+    --wc-blue: #2563eb;
+    --wc-orange: #ea580c;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: #f8fafc;
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 20px 16px 100px;
+    color: var(--wc-ink);
+}
+
+.wc-home-btn {
+    position: absolute; top: 14px; right: 16px;
+    background: rgba(255,255,255,0.15); border-radius: 8px;
+    width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;
+    text-decoration: none; font-size: 16px;
+}
+
+header.screen-only {
+    position: relative;
+    background: linear-gradient(135deg, var(--wc-header), var(--wc-header2));
+    border-radius: 16px; padding: 16px 22px; margin-bottom: 18px;
+}
+header.screen-only h1 { margin: 0; font-size: 20px; color: #fff; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.puzzle-level { background: #7c3aed; padding: 4px 12px; border-radius: 999px; font-size: 13px; }
+.puzzle-batch-number { background: var(--wc-orange); padding: 4px 12px; border-radius: 999px; font-size: 13px; }
+.puzzle-title { display: none; }
+
+#puzzleContainer {
+    display: flex; gap: 24px; align-items: flex-start;
+    background: var(--wc-card); border-radius: 16px;
+    box-shadow: 0 4px 16px rgba(15,23,42,0.06);
+    padding: 24px; flex-wrap: wrap;
+}
+
+.wordfinder-grid {
+    display: grid; gap: 1px; background: #D9DEE8; border: 2px solid #D9DEE8;
+    border-radius: 8px; overflow: hidden;
+    width: min(520px, 100%); aspect-ratio: 1 / 1; flex: 0 0 auto;
+}
+.wf-cell {
+    position: relative; background: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: clamp(9px, 2.2vw, 15px); color: var(--wc-ink);
+    transition: background 0.15s ease;
+}
+
+body.mode-answer .wf-cell.color-red, .wf-cell.color-red.is-revealed { background: #FADBD8; color: #C0392B; }
+body.mode-answer .wf-cell.color-blue, .wf-cell.color-blue.is-revealed { background: #D6E9FA; color: #2266C4; }
+body.mode-answer .wf-cell.color-green, .wf-cell.color-green.is-revealed { background: #D8F3E2; color: #1E8E4F; }
+body.mode-answer .wf-cell.color-orange, .wf-cell.color-orange.is-revealed { background: #FCE4CC; color: #C8710F; }
+body.mode-answer .wf-cell.color-purple, .wf-cell.color-purple.is-revealed { background: #EBDBF7; color: #7E3FBF; }
+body.mode-answer .wf-cell.color-brown, .wf-cell.color-brown.is-revealed { background: #EADBCF; color: #7A5230; }
+body.mode-answer .wf-cell.color-teal, .wf-cell.color-teal.is-revealed { background: #D2F1EF; color: #128077; }
+body.mode-answer .wf-cell.color-maroon, .wf-cell.color-maroon.is-revealed { background: #F3D9DA; color: #8E3B3D; }
+body.mode-answer .wf-cell.color-navy, .wf-cell.color-navy.is-revealed { background: #D9E1EE; color: #1F3A5F; }
+body.mode-answer .wf-cell.color-olive, .wf-cell.color-olive.is-revealed { background: #E9EAD0; color: #6B6A1A; }
+body.mode-answer .wf-cell[class*="color-"], .wf-cell.is-revealed { border-radius: 4px; font-weight: 800; }
+
+.wf-word-list { flex: 1 1 260px; min-width: 220px; }
+.wf-word-list h3 {
+    font-size: 15px; color: var(--wc-teal); margin: 0 0 8px;
+    border-bottom: 2px solid #E6F8F6; padding-bottom: 4px;
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+}
+.wf-header-controls .speak-btn {
+    width: 26px; height: 26px; font-size: 12px; border: none; border-radius: 50%;
+    background: #f1f5f9; cursor: pointer;
+}
+.wf-word-list ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.wf-word-list li {
+    font-size: 14px; color: var(--wc-ink); display: flex; align-items: center; gap: 8px;
+    line-height: 1.4; cursor: pointer; border-radius: 8px; padding: 4px 6px; margin: 0 -6px;
+    flex-wrap: wrap;
+}
+.wf-word-list li:hover { background: #F4F6FA; }
+.wf-word-list li.is-revealed { background: #FAFBFD; }
+.wf-item-number { font-weight: 800; color: var(--wc-blue); flex: 0 0 auto; }
+.wf-thumb { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; flex: 0 0 auto; background: #F4F6FA; }
+.wf-answer-text { display: none; font-weight: 800; letter-spacing: 0.03em; }
+body.mode-answer .wf-answer-text, .wf-answer-text.is-revealed { display: inline !important; }
+.wf-answer-text.color-red { color: #C0392B; } .wf-answer-text.color-blue { color: #2266C4; }
+.wf-answer-text.color-green { color: #1E8E4F; } .wf-answer-text.color-orange { color: #C8710F; }
+.wf-answer-text.color-purple { color: #7E3FBF; } .wf-answer-text.color-brown { color: #7A5230; }
+.wf-answer-text.color-teal { color: #128077; } .wf-answer-text.color-maroon { color: #8E3B3D; }
+.wf-answer-text.color-navy { color: #1F3A5F; } .wf-answer-text.color-olive { color: #6B6A1A; }
+.wf-clue-text { font-size: 12px; color: var(--wc-muted); }
+
+.wc-empty { text-align: center; color: var(--wc-muted); padding: 60px 20px; grid-column: 1/-1; }
+.footer-message, .print-only { display: none; }
+
+.answer-grid { display: none; margin-top: 20px; background: var(--wc-card); border-radius: 16px; box-shadow: 0 4px 16px rgba(15,23,42,0.06); overflow: hidden; }
+body.mode-answer .answer-grid { display: block; }
+.answer-grid table { width: 100%; border-collapse: collapse; }
+.answer-grid-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px 0; }
+.answer-grid-header h3 { font-size: 15px; margin: 0; }
+.answer-grid th { background: var(--wc-header); color: #fff; font-size: 13px; padding: 10px 12px; text-align: left; }
+.answer-grid td { padding: 10px 12px; font-size: 13px; border-bottom: 1px solid #EEF1F6; vertical-align: middle; }
+.answer-grid .cell-word { font-weight: 700; }
+.cell-pronun { font-size: 11px; color: var(--wc-teal); margin-top: 2px; }
+.answer-grid .cell-thumb img { width: 36px; height: 36px; border-radius: 6px; object-fit: cover; display: block; }
+
+.pagination-controls {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;
+    padding: 12px; background: #fff; border-top: 1px solid var(--wc-border); z-index: 20;
+}
+.wc-grade-select { border: 1px solid var(--wc-border); border-radius: 10px; padding: 8px 12px; font-size: 13px; }
+.nav-button { border: none; border-radius: 10px; padding: 9px 16px; font-size: 13px; font-weight: 600; background: var(--wc-primary-light); color: var(--wc-primary); cursor: pointer; }
+#newPuzzleBtn { background: var(--wc-primary); color: #fff; }
+
+@media (max-width: 640px) {
+    #puzzleContainer { flex-direction: column; padding: 16px; }
+    .wordfinder-grid { width: 100%; }
+}
+
+/* 힌트 색깔 구분 (라벨 없음) */
+.clue-en { color: var(--wc-blue); font-weight: 600; }
+.clue-collocation { color: var(--wc-teal); }
+.clue-native { color: #7c3aed; font-weight: 600; }

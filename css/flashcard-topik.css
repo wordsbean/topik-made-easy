@@ -1,0 +1,448 @@
+/* Lingo Power: Hangul Learning for TOPIK — 새 index.html (플래시카드 프로토타입) 전용 스타일
+   기존 css/style.css 토큰(--bg, --ink, --accent-red, --accent-blue 등)을 그대로 사용.
+   css/grade.css의 .build-* / .kb-* / .hangul-keyboard 클래스도 그대로 재사용(따라쓰기 영역). */
+
+.fc-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 10px 20px 0;
+}
+
+.fc-topbar label {
+    font-size: 12px;
+    color: var(--ink-soft);
+}
+
+.fc-topbar select {
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    font-size: 13px;
+    color: var(--ink);
+}
+
+.fc-progress {
+    text-align: center;
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-top: 6px;
+}
+
+.fc-stage {
+    display: flex;
+    justify-content: center;
+    padding: 8px 20px 6px;
+}
+
+.fc-card {
+    width: 100%;
+    max-width: 680px;
+    aspect-ratio: 680 / 280;   /* 가로로 긴 직사각형 비율 유지, 화면폭에 맞춰 자동으로 늘고 줆 */
+    perspective: 1000px;
+    cursor: pointer;
+    margin: 0 auto;
+}
+
+/* 화면이 좁아지면 비율을 살짝 더 낮춰서(더 납작하게) 세로 공간을 아낌 */
+@media (max-width: 480px) {
+    .fc-stage { padding: 6px 12px 4px; }
+    .fc-card { aspect-ratio: 680 / 320; }
+    .text-3d--word { font-size: 24px; -webkit-text-stroke-width: 5px; }
+    .text-3d--eng { font-size: 14px; }
+}
+
+.fc-card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.5s;
+    transform-style: preserve-3d;
+}
+
+.fc-card.is-flipped .fc-card-inner {
+    transform: rotateY(180deg);
+}
+
+.fc-card-face {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    backface-visibility: hidden;
+    padding: 16px;
+    text-align: center;
+}
+
+/* ---- 앞면: 이미지 + 3D텍스트 오버레이 (이미지 유무 상관없이 항상 표시) ---- */
+.fc-card-front {
+    padding: 0;
+    overflow: hidden;
+    gap: 0;
+}
+
+.card-image-area {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+}
+.card-image-area.no-image { background-image: none !important; }
+.card-image-area.no-image[data-pos="명사"] { background: linear-gradient(160deg, #8ba8f5, #5b86e5); }
+.card-image-area.no-image[data-pos="동사"] { background: linear-gradient(160deg, #91d6b2, #48b285); }
+.card-image-area.no-image[data-pos="형용사"] { background: linear-gradient(160deg, #f7be81, #eb9544); }
+.card-image-area.no-image[data-pos="부사"] { background: linear-gradient(160deg, #c6a0eb, #9c6bd6); }
+.card-image-area.no-image:not([data-pos="명사"]):not([data-pos="동사"]):not([data-pos="형용사"]):not([data-pos="부사"]) {
+    background: linear-gradient(160deg, #b4b2a9, #888780);
+}
+
+.card-top-icons {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    display: flex;
+    justify-content: space-between;
+    z-index: 2;
+}
+.card-top-icons button {
+    background: rgba(255,255,255,0.88);
+    border: none;
+    border-radius: 50%;
+    width: 34px;
+    height: 34px;
+    font-size: 17px;
+    cursor: pointer;
+}
+.card-top-icons button.active { color: #D8A93B; }
+
+.card-text-overlay {
+    width: 100%;
+    padding: 14px 12px 16px;
+    background: linear-gradient(to top, rgba(0,0,0,0.4), transparent 90%);
+}
+
+.text-3d {
+    color: #000;
+    -webkit-text-stroke: 5px #fff;
+    paint-order: stroke fill;
+    font-weight: 800;
+    line-height: 1.3;
+    margin: 0;
+    text-align: center;
+}
+.text-3d--pos { font-size: 13px; -webkit-text-stroke-width: 3px; opacity: .9; }
+.text-3d--word { font-size: 30px; -webkit-text-stroke-width: 6px; font-family: 'Song Myung', serif; }
+.text-3d--roman { font-size: 14px; -webkit-text-stroke-width: 3px; color: #4a4a4a; }
+.text-3d--eng { font-size: 17px; -webkit-text-stroke-width: 4px; }
+.text-3d--native { font-size: 15px; -webkit-text-stroke-width: 3px; color: #ffd633; min-height: 1em; }
+
+.fc-card-front .fc-hint {
+    position: absolute;
+    bottom: -22px;
+    left: 0;
+    right: 0;
+    font-size: 12px;
+    color: var(--ink-soft);
+    text-align: center;
+}
+
+.fc-card-back {
+    transform: rotateY(180deg);
+    background: var(--accent-blue-soft);
+    border-color: var(--accent-blue);
+    overflow-y: auto;
+}
+
+.fc-card-back .fc-word-small {
+    font-family: 'Song Myung', serif;
+    font-size: 20px;
+    color: var(--accent-blue);
+}
+
+.fc-back-example-kor {
+    font-size: 14px;
+    color: var(--ink);
+    margin: 6px 0 2px;
+}
+.fc-back-example-kor mark {
+    background: none;
+    color: var(--accent-blue);
+    font-weight: 700;
+}
+.fc-back-example-eng {
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin: 0 0 6px;
+}
+
+.fc-card-back .fc-meaning-en {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--ink);
+    padding: 0 8px;
+}
+
+.fc-back-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* .panel button{width:100%}(style.css)이 .speak-btn(원형 34px)까지 늘려버리는 문제 방지 */
+.panel .speak-btn {
+    width: 34px;
+    height: 34px;
+    flex: 0 0 auto;
+    margin-top: 0;
+}
+
+.fc-lang-note {
+    font-size: 11px;
+    color: var(--ink-soft);
+}
+
+/* --- 모드 탭 (뒤집기 / 펼쳐보기 / 예문 더보기) --- */
+/* .mode-tabs / .mode-tab 은 css/style.css에 이미 정의돼 있어 그대로 재사용 */
+
+.fc-mode-tabs {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* --- 펼쳐보기(flat) 패널 --- */
+.fc-flat-panel {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.fc-flat-panel .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+}
+
+.fc-flat-word-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.fc-flat-word {
+    font-family: 'Song Myung', serif;
+    font-size: 30px;
+    color: var(--ink);
+}
+
+.fc-flat-roman-inline {
+    font-size: 16px;
+    color: #7EC4EE;
+    font-weight: 500;
+}
+
+.fc-flat-row {
+    margin-bottom: 12px;
+}
+
+.fc-flat-row:last-child {
+    margin-bottom: 0;
+}
+
+.fc-flat-value {
+    font-size: 14.5px;
+    color: var(--ink);
+    line-height: 1.5;
+    margin: 0;
+}
+
+.hl-word {
+    color: var(--accent-red);
+    font-weight: 700;
+}
+
+/* --- 예문 더보기 패널 --- */
+.fc-examples-panel {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.fc-examples-panel .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+}
+
+.fc-example-row {
+    padding: 10px 12px;
+    background: var(--bg);
+    border-radius: 10px;
+    font-size: 14px;
+    color: var(--ink);
+    line-height: 1.5;
+    margin-bottom: 8px;
+}
+
+.fc-example-row:last-child {
+    margin-bottom: 0;
+}
+
+.fc-example-eng-sub {
+    font-size: 12px;
+    color: var(--ink-soft);
+    font-style: italic;
+}
+
+.fc-examples-empty {
+    text-align: center;
+    color: var(--ink-soft);
+    font-size: 13px;
+    padding: 12px 0;
+}
+
+.fc-nav {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    padding: 14px 20px 0;
+}
+
+.fc-nav button {
+    padding: 9px 16px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--ink);
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.fc-nav button:hover {
+    border-color: var(--accent-blue);
+}
+
+.fc-nav button.fc-speak-btn {
+    background: var(--accent-blue);
+    border-color: var(--accent-blue);
+    color: #fff;
+}
+
+.fc-write-section {
+    max-width: 680px;
+    margin: 22px auto 40px;
+    padding: 0 20px;
+}
+
+.fc-write-section .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+}
+
+.fc-write-title {
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin: 0 0 10px;
+    text-align: center;
+}
+
+.fc-empty {
+    text-align: center;
+    color: var(--ink-soft);
+    padding: 40px 20px;
+}
+
+/* ============================================================
+   리디자인: 선 최소화 + 부드러운 그림자 + 가변형 카드 + 타이포 계층화
+   ============================================================ */
+
+.fc-card { max-width: 900px; }
+@media (min-width: 981px) { .fc-card { aspect-ratio: 900 / 340; } }
+
+.fc-card-face {
+    border: none;
+    box-shadow: 0 4px 16px rgba(33,29,26,0.06), 0 1px 3px rgba(33,29,26,0.08);
+}
+
+.fc-card-back {
+    box-shadow: 0 4px 16px rgba(12,68,124,0.08), 0 1px 3px rgba(12,68,124,0.1);
+}
+
+.fc-flat-panel .panel,
+.fc-examples-panel .panel {
+    border: none;
+    box-shadow: 0 2px 12px rgba(33,29,26,0.06);
+    border-radius: 16px;
+}
+
+.fc-flat-word { font-size: 40px; }
+.fc-flat-roman-inline { font-size: 17px; opacity: 0.85; }
+.fc-flat-value { color: var(--ink-soft); font-size: 14px; }
+.fc-flat-value:first-child { color: var(--ink); font-size: 15px; }
+
+.fc-mode-tabs button,
+#fcGradeSelect {
+    border: none;
+    box-shadow: 0 1px 4px rgba(33,29,26,0.08);
+}
+
+.fc-nav button {
+    border: none;
+    border-radius: 14px;
+    box-shadow: 0 2px 8px rgba(33,29,26,0.07);
+}
+
+/* ---- 따라쓰기 아코디언 ---- */
+.fc-write-section {
+    max-width: 900px;
+    margin: 16px auto 0;
+    padding: 0 20px;
+}
+
+.fc-write-summary {
+    list-style: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    background: var(--surface);
+    border-radius: 14px;
+    box-shadow: 0 2px 10px rgba(33,29,26,0.06);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+}
+.fc-write-summary::-webkit-details-marker { display: none; }
+
+.fc-write-chevron {
+    transition: transform 0.25s ease;
+    color: var(--ink-soft);
+}
+.fc-write-section[open] .fc-write-chevron { transform: rotate(180deg); }
+
+.fc-write-body {
+    margin-top: 8px;
+    border: none !important;
+    box-shadow: 0 2px 12px rgba(33,29,26,0.06);
+    border-radius: 14px;
+}

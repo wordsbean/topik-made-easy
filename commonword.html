@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Common Word — TOPIK Made Easy</title>
+<link rel="icon" href="images/icons/icon-192.png">
+<link rel="stylesheet" href="css/nav-hangul.css">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Song+Myung&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/commonword.css">
+</head>
+<body>
+
+<header class="screen-only">
+  <h1>🔎 공통으로 들어갈 단어는
+    <span class="puzzle-level" id="levelBadge">-</span>
+    <span class="puzzle-batch-number" id="batchBadge">-</span>
+  </h1>
+</header>
+
+<h2 class="puzzle-title" id="printTitle">Common Word</h2>
+
+<div class="cw-toolbar screen-only" id="cwToolbar"></div>
+
+<div class="cw-loading" id="cwLoading">데이터를 불러오는 중...</div>
+<div class="cw-grid" id="cwGrid"></div>
+
+<div id="answerGrid" class="answer-grid"></div>
+
+<div class="pagination-controls screen-only" id="pagCtrl" style="display:none;">
+  <select id="gradeSelect" class="cw-grade-select">
+    <option value="1">1급</option>
+    <option value="2">2급</option>
+    <option value="3">3급</option>
+    <option value="4">4급</option>
+    <option value="5">5급</option>
+    <option value="6">6급</option>
+  </select>
+  <button id="newPuzzleBtn" class="nav-button" data-i18n="newPuzzle">새 퍼즐 만들기</button>
+  <button id="toggleAnswerBtn" class="nav-button" data-i18n="showAnswer">정답 보기</button>
+  <button id="printBtn" class="nav-button" data-i18n="print">인쇄</button>
+</div>
+
+<script src="js/lang-pref-hangul.js"></script>
+<script src="js/ui-i18n-hangul.js"></script>
+<script src="js/speak.js"></script>
+<script src="js/romanize.js"></script>
+<script src="js/roman-toggle.js"></script>
+<script src="js/translate-helper.js"></script>
+<script>
+(function () {
+
+  // =========================================================
+  // 0) TOPIK 데이터 로딩
+  // =========================================================
+  function loadScript(src) {
+    return new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = src;
+      s.onload = resolve;
+      s.onerror = () => reject(new Error('스크립트 로드 실패: ' + src));
+      document.head.appendChild(s);
+    });
+  }
+
+  async function loadTopikData(langCode) {
+    const scripts = ['data/topik_core.js', 'data/nvsentences.js'];
+    const useStatic = (typeof isStaticLangSupported === 'function') ? isStaticLangSupported(langCode) : false;
+    if (useStatic) scripts.push('data/topik_lang_' + langCode + '.js');
+    await Promise.all(scripts.map(loadScript));
+    const langData = useStatic ? window['TOPIK_LANG_' + langCode.toUpperCase()] : null;
+    return TOPIK_CORE.map(w => ({
+      ...w,
+      nativeWord: langData && langData[w.id] ? langData[w.id].word : null,
+      nativeMeaning: langData && langData[w.id] ? langData[w.id].meaning : (w.engMeaning || ''),
+      nv: (typeof NV_SENTENCES !== 'undefined' && NV_SENTENCES[w.id]) ? NV_SENTENCES[w.id] : null,
+    }));
+  }
+
+  // 10개국(정적 지원)이 아닌 "기타 언어"일 때만: 화면에 나온 문제 6개에 한해서만
+  // 실시간 번역으로 단어/뜻을 채워넣음 (전체 단어를 미리 다 번역하면 느려서 화면에 보이는 것만).
+  async function fillExtraLangHints(items, langCode) {
+    const useStatic = (typeof isStaticLangSupported === 'function') ? isStaticLangSupported(langCode) : false;
+    if (useStatic || langCode === 'en') return;
+    if (typeof getNativeWordMeaning !== 'function') return;
+
+    await Promise.all(items.map(async (item, idx) => {
+      const result = await getNativeWordMeaning(item.id, item.word, item.engMeaning, langCode, null);
+      item.nativeWord = result.word;
+      item.nativeMeaning = result.meaning;
+      const hintEl = cwGrid.querySelector(`.cw-card[data-item="${idx}"] .cw-hint`);
+      if (hintEl && result.word) {
+        hintEl.innerHTML = `${item.engWord || ''}<span class="native">· ${result.word}</span>`;
+      }
+      const answerCell = answerGridEl.querySelector(`tr[data-item="${idx}"] .cell-native`);
+      if (answerCell && result.word) answerCell.textContent = result.word;
+    }));
+  }
+
+  function isDismissed(id) {
+    return JSON.parse(localStorage.getItem('topik_dismissed') || '[]').includes(id);
+  }
+
+  // =========================================================
+  // 1) 설정
+  // =========================================================
+  const ITEMS_PER_PAGE = 6;
+  const SENTENCES_PER_ITEM = 3;
+  const CHOICE_LETTERS = ['A', 'B', 'C', 'D'];
+
+  const cwGrid = document.getElementById('cwGrid');
+  const cwLoading = document.getElementById('cwLoading');
+  const levelBadge = document.getElementById('levelBadge');
+  const batchBadge = document.getElementById('batchBadge');
+  const printTitle = document.getElementById('printTitle');
+  const toggleAnswerBtn = document.getElementById('toggleAnswerBtn');
+  const answerGridEl = document.getElementById('answerGrid');
+  const gradeSelect = document.getElementById('gradeSelect');
+
+  let WORDS = [];
+  let puzzleCount = 0;
+  let currentGrade = (typeof getSavedGrade === 'function') ? String(getSavedGrade()) : '1';
+  let currentLang = 'en';
+  let currentItems = []; // { id, word, roman, engWord, nativeWord, grade, sentences:[{kor,eng}], choices:[{text,isCorrect}], revealed:false }
+
+  // =========================================================
+  // 2) 후보 예문 모으기 (index.html "예문 더보기" 탭과 같은 소스: nv.pos + examplesKor)
+  // =========================================================
+  const MIN_CONTEXT_LEN = 3;
+
+  function candidateSentences(w) {
+    const seen = new Set();
+    const out = [];
+    if (w.nv && Array.isArray(w.nv.pos)) {
+      w.nv.pos.forEach(p => {
+        if (p.kor && p.kor.includes(w.word) && !seen.has(p.kor)) { seen.add(p.kor); out.push({ kor: p.kor.trim(), eng: p.eng || '' }); }
+      });
+    }
+    if (Array.isArray(w.examplesKor)) {
+      w.examplesKor.forEach(k => {
+        if (k && k.includes(w.word) && !seen.has(k)) { seen.add(k); out.push({ kor: k.trim(), eng: '' }); }
+      });
+    }
+    return out
+      .map(c => ({ ...c, score: (c.eng ? 1000 : 0) + Math.min(c.kor.length - w.word.length, 60) }))
+      .filter(c => c.kor.length - w.word.length >= MIN_CONTEXT_LEN)
+      .sort((a, b) => b.score - a.score);
+  }
+
+  function buildPool() {
+    const seenWord = new Set();
+    const pool = [];
+    for (const w of WORDS) {
+      if (String(w.grade || '').charAt(0) !== currentGrade) continue;
+      if (isDismissed(w.id)) continue;
+      const word = (w.word || '').trim();
+      if (!word || seenWord.has(word)) continue;
+      const cands = candidateSentences(w);
+      if (cands.length < SENTENCES_PER_ITEM) continue;
+      seenWord.add(word);
+      pool.push({ ...w, sentencePool: cands });
+    }
+    return pool;
+  }
+
+  function shuffleArray(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function pickRandomIndices(poolLen, count) {
+    return shuffleArray([...Array(poolLen).keys()]).slice(0, count).sort((a, b) => a - b);
+  }
+
+  function pickNeighborDistractors(pool, targetIdx, count) {
+    const before = [];
+    const after = [];
+    for (let i = targetIdx - 1; i >= 0 && before.length < 2; i--) before.push(pool[i].word);
+    for (let i = targetIdx + 1; i < pool.length && after.length < 2; i++) after.push(pool[i].word);
+    let combined = [...before, ...after];
+    let extraBefore = targetIdx - 1 - before.length;
+    while (combined.length < count && extraBefore >= 0) { combined.push(pool[extraBefore].word); extraBefore--; }
+    let extraAfter = targetIdx + 1 + after.length;
+    while (combined.length < count && extraAfter < pool.length) { combined.push(pool[extraAfter].word); extraAfter++; }
+    return combined.slice(0, count);
+  }
+
+  // 문장 안의 단어를 모두 빈칸으로. 로마자도 "같은 분할 지점"으로 만들어서
+  // 로마자 줄에 정답 발음이 그대로 노출되지 않게 함 (한 단어가 여러 번 나와도 전부 처리).
+  function blankOutAllWithRoman(sentence, word) {
+    const parts = sentence.split(word);
+    const korHtml = parts.join('<span class="cw-blank">&nbsp;</span>');
+    let romanHtml = '';
+    if (typeof romanizeSentence === 'function') {
+      romanHtml = parts.map(p => romanizeSentence(p)).join('<span class="cw-blank cw-blank--roman">&nbsp;</span>');
+    }
+    return { korHtml, romanHtml };
+  }
+
+  // =========================================================
+  // 3) 렌더링
+  // =========================================================
+  function renderPuzzle() {
+    const pool = buildPool();
+    if (!pool.length) {
+      cwGrid.innerHTML = '<div class="cw-loading">이 급수에는 예문이 3개 이상 있는 단어가 아직 부족해요.</div>';
+      answerGridEl.innerHTML = '';
+      return;
+    }
+    const count = Math.min(ITEMS_PER_PAGE, pool.length);
+    const indices = pickRandomIndices(pool.length, count);
+
+    currentItems = indices.map(idx => {
+      const item = pool[idx];
+      const sentences = shuffleArray(item.sentencePool).slice(0, SENTENCES_PER_ITEM);
+      const distractors = pickNeighborDistractors(pool, idx, 3);
+      const choiceWords = shuffleArray([item.word, ...distractors]);
+      const choices = choiceWords.map(w => ({ text: w, isCorrect: w === item.word }));
+      return { ...item, sentences, choices, revealed: false };
+    });
+
+    puzzleCount++;
+    levelBadge.textContent = (typeof tGradeBadge === 'function') ? tGradeBadge(currentGrade) : currentGrade + '급';
+    batchBadge.textContent = (typeof tBatchBadge === 'function') ? tBatchBadge(puzzleCount) : `제 ${puzzleCount}회`;
+    printTitle.textContent = `🔎 ${typeof t === 'function' ? t('commonwordTitle') : '공통으로 들어갈 단어는'} · ${tGradeBadge(currentGrade)} ${tBatchBadge(puzzleCount)}`;
+
+    cwGrid.innerHTML = currentItems.map((item, idx) => {
+      const choicesHtml = item.choices.map((c, ci) => `
+        <button type="button" class="cw-choice-btn" data-item="${idx}" data-word="${c.text}" data-correct="${c.isCorrect}">
+          <span class="cw-choice-letter">${CHOICE_LETTERS[ci]}.</span>
+          <span>${c.text}</span>
+        </button>
+      `).join('');
+
+      const sentencesHtml = item.sentences.map((s, si) => {
+        const blanked = blankOutAllWithRoman(s.kor, item.word);
+        return `
+        <div class="cw-sentence-row" data-item="${idx}" data-sent="${si}" data-sentence="${s.kor.replace(/"/g, '&quot;')}">
+          <span class="cw-sentence-line">
+            <span class="cw-sentence-text">${blanked.korHtml}</span><button type="button" class="cw-sentence-listen-icon" data-item="${idx}" data-sent="${si}" style="display:none;" title="듣기 (번역포함)" data-i18n-title="listenWithTranslation">🔊</button>
+          </span>
+          ${blanked.romanHtml ? `<span class="cw-roman-line">${blanked.romanHtml}</span>` : ''}
+          ${s.eng ? `<span class="cw-eng-line">${s.eng}</span>` : ''}
+          <span class="cw-native-line" style="display:none;"></span>
+        </div>
+      `;
+      }).join('');
+
+      return `
+        <div class="cw-card" data-item="${idx}">
+          <div class="cw-card-top">
+            <span class="cw-item-number">${idx + 1}.</span>
+            <span class="cw-hint">${item.engWord || ''}${item.nativeWord ? '<span class="native">· ' + item.nativeWord + '</span>' : ''}</span>
+            <div class="cw-controls">
+              <button type="button" class="cw-speak-btn" data-item="${idx}" title="단어 발음" style="display:none;">🔊</button>
+            </div>
+          </div>
+          <div class="cw-sentences">${sentencesHtml}</div>
+          <div class="cw-choices">${choicesHtml}</div>
+          <div class="cw-item-status" id="cwStatus${idx}"></div>
+        </div>
+      `;
+    }).join('');
+
+    renderAnswerGrid(currentItems);
+    bindInteractions();
+    fillExtraLangHints(currentItems, currentLang);
+    if (typeof applyI18n === 'function') applyI18n();
+  }
+
+  // =========================================================
+  // 4) 정답 공개 시: 빈칸 채우기 + 예문 재생/번역 활성화
+  // =========================================================
+  function revealItem(idx) {
+    const item = currentItems[idx];
+    if (item.revealed) return;
+    item.revealed = true;
+
+    const card = cwGrid.querySelector(`.cw-card[data-item="${idx}"]`);
+    card.querySelectorAll('.cw-blank:not(.cw-blank--roman)').forEach(b => { b.textContent = item.word; });
+    if (typeof romanizeWord === 'function') {
+      card.querySelectorAll('.cw-blank--roman').forEach(b => { b.textContent = romanizeWord(item.word); });
+    }
+
+    const speakBtn = card.querySelector('.cw-speak-btn');
+    if (speakBtn) speakBtn.style.display = '';
+
+    card.querySelectorAll('.cw-sentence-row').forEach(row => {
+      const listenBtn = row.querySelector('.cw-sentence-listen-icon');
+      if (listenBtn) {
+        listenBtn.style.display = '';
+        listenBtn.addEventListener('click', () => {
+          speakKorean(row.dataset.sentence);
+          const nativeEl = row.querySelector('.cw-native-line');
+          if (typeof fillTranslationOnce === 'function') fillTranslationOnce(nativeEl, row.dataset.sentence);
+        });
+      }
+    });
+  }
+
+  // =========================================================
+  // 5) 상호작용
+  // =========================================================
+  function bindInteractions() {
+    cwGrid.querySelectorAll('.cw-choice-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const itemIdx = Number(btn.dataset.item);
+        const isCorrect = btn.dataset.correct === 'true';
+        const item = currentItems[itemIdx];
+
+        if (isCorrect) {
+          btn.classList.add('is-correct');
+          cwGrid.querySelectorAll(`.cw-choice-btn[data-item="${itemIdx}"]`).forEach(b => b.disabled = true);
+          document.getElementById(`cwStatus${itemIdx}`).textContent = '✓ 정답!';
+          revealItem(itemIdx);
+          speakKorean(item.word);
+        } else {
+          btn.classList.remove('is-wrong');
+          void btn.offsetWidth;
+          btn.classList.add('is-wrong');
+          setTimeout(() => {
+            btn.classList.remove('is-wrong');
+            btn.disabled = true;
+          }, 300);
+        }
+      });
+    });
+
+    cwGrid.querySelectorAll('.cw-speak-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const item = currentItems[Number(btn.dataset.item)];
+        speakKorean(item.word);
+      });
+    });
+  }
+
+  // =========================================================
+  // 6) 정답 요약 표
+  // =========================================================
+  function renderAnswerGrid(items) {
+    const rows = items.map((w, idx) => `
+        <tr data-item="${idx}">
+          <td class="cell-word">${w.word}<div class="cell-pronun">${w.roman || ''}</div></td>
+          <td>${w.engWord || ''}</td>
+          <td>${w.engMeaning || ''}</td>
+          <td class="cell-native">${w.nativeWord || w.nativeMeaning || ''}</td>
+        </tr>
+      `).join('');
+
+    answerGridEl.innerHTML = `
+      <div class="answer-grid-header">
+        <h3>${typeof t === 'function' ? t('answerSummary') : '정답 요약'}</h3>
+        <span><button type="button" class="answer-speak-btn" id="answerSpeakBtn" title="전체듣기">🔊</button></span>
+      </div>
+      <table>
+        <thead><tr><th>${typeof t === 'function' ? t('colWord') : '단어'}</th><th>${typeof t === 'function' ? t('colEnglish') : '영어'}</th><th>${typeof t === 'function' ? t('colEnglishMeaning') : '영어뜻'}</th><th>${typeof t === 'function' ? t('colNative') : '모국어'}</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    `;
+
+    document.getElementById('answerSpeakBtn').onclick = () => {
+      toggleSpeakKoreanSequence(items.map(w => w.word));
+    };
+  }
+
+  // =========================================================
+  // 7) 초기화
+  // =========================================================
+  document.addEventListener('DOMContentLoaded', async () => {
+    const newPuzzleBtn = document.getElementById('newPuzzleBtn');
+    const lang = (typeof getSavedUserLang === 'function') ? getSavedUserLang() : 'en';
+    currentLang = lang;
+    if (typeof initRomanToggle === 'function') initRomanToggle(document.getElementById('cwToolbar'), typeof t === 'function' ? t('romanToggle') : undefined);
+
+    try {
+      WORDS = await loadTopikData(lang);
+    } catch (e) {
+      cwLoading.textContent = '데이터를 불러오지 못했어요: ' + e.message;
+      return;
+    }
+    cwLoading.style.display = 'none';
+    document.getElementById('pagCtrl').style.display = 'flex';
+
+    function renderPuzzleWithLoading() {
+      newPuzzleBtn.disabled = true;
+      newPuzzleBtn.textContent = typeof t === 'function' ? t('generating') : '만드는 중...';
+      setTimeout(() => {
+        renderPuzzle();
+        newPuzzleBtn.disabled = false;
+        newPuzzleBtn.textContent = typeof t === 'function' ? t('newPuzzle') : '새 퍼즐 만들기';
+      }, 30);
+    }
+
+    gradeSelect.value = currentGrade;
+    renderPuzzleWithLoading();
+    newPuzzleBtn.addEventListener('click', renderPuzzleWithLoading);
+
+    gradeSelect.addEventListener('change', () => {
+      currentGrade = gradeSelect.value;
+      if (typeof saveGrade === 'function') saveGrade(Number(currentGrade));
+      document.body.classList.remove('mode-answer');
+      toggleAnswerBtn.textContent = typeof t === 'function' ? t('showAnswer') : '정답 보기';
+      renderPuzzleWithLoading();
+    });
+
+    toggleAnswerBtn.addEventListener('click', () => {
+      document.body.classList.toggle('mode-answer');
+      const isAnswer = document.body.classList.contains('mode-answer');
+      toggleAnswerBtn.textContent = typeof t === 'function' ? (isAnswer ? t('showProblem') : t('showAnswer')) : (isAnswer ? '문제 보기' : '정답 보기');
+      if (isAnswer) {
+        currentItems.forEach((item, idx) => {
+          revealItem(idx);
+          cwGrid.querySelectorAll(`.cw-choice-btn[data-item="${idx}"]`).forEach(btn => {
+            if (btn.dataset.correct === 'true') btn.classList.add('is-answer');
+          });
+        });
+      }
+    });
+
+    document.getElementById('printBtn').addEventListener('click', () => {
+      const num = String(puzzleCount).padStart(3, '0');
+      const isAnswer = document.body.classList.contains('mode-answer');
+      const suffix = isAnswer ? '정답' : '문제';
+      const originalTitle = document.title;
+      document.title = `cw${currentGrade}_${num}_${suffix}`;
+      window.print();
+      document.title = originalTitle;
+    });
+  });
+})();
+</script>
+<script src="js/nav-hangul.js"></script>
+</body>
+</html>

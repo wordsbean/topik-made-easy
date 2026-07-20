@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TOPIK Made Easy — Lingo Power</title>
+<meta name="description" content="TOPIK 1~6급 플래시카드">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="images/icons/icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Song+Myung&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+<link rel="stylesheet" href="css/grade.css">
+<link rel="stylesheet" href="css/app-shell.css">
+<link rel="stylesheet" href="css/nav-hangul.css">
+</head>
+<body>
+
+<!-- 좌측 메뉴 버튼은 js/nav-hangul.js가 다른 페이지와 동일한 방식(플로팅 버튼)으로 만들어줍니다 -->
+
+<!-- [중앙] 메인 학습 영역 -->
+<div class="main-container">
+  <div class="top-toolbar">
+    <div class="brand-title">TOPIK Made Easy</div>
+    <div class="toolbar-right">
+      <select id="fcGradeSelect" class="grade-select">
+        <option value="1" data-i18n="grade1Label">1급 (초급)</option>
+        <option value="2" data-i18n="grade2Label">2급 (초급)</option>
+        <option value="3" data-i18n="grade3Label">3급 (중급)</option>
+        <option value="4" data-i18n="grade4Label">4급 (중급)</option>
+        <option value="5" data-i18n="grade5Label">5급 (고급)</option>
+        <option value="6" data-i18n="grade6Label">6급 (고급)</option>
+      </select>
+      <button class="nav-icon-btn" id="right-menu-btn" aria-label="단어 목록">
+        <span class="material-icons-round">format_list_bulleted</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="flash-card-container" id="fcCard">
+    <div class="card-header">
+      <span class="fc-progress" id="fcProgress">- / -</span>
+      <div class="card-header-right">
+        <div class="fc-mode-tabs">
+          <button class="mode-tab" data-mode="flip" data-active="1" data-i18n="tabFlip">뒤집기</button>
+          <button class="mode-tab" data-mode="flat" data-i18n="tabFlat">펼쳐보기</button>
+          <button class="mode-tab" data-mode="examples" data-i18n="tabExamples">예문 더보기</button>
+        </div>
+        <button class="practice-toggle-btn" id="kbd-toggle-btn">
+          <span class="material-icons-round">edit</span>
+          <span data-i18n="traceMode">따라쓰기</span>
+        </button>
+        <button class="icon-only-btn" id="fcFavBtn" aria-label="즐겨찾기">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M6 3a1 1 0 0 0-1 1v17l7-4.5 7 4.5V4a1 1 0 0 0-1-1H6z"/></svg>
+        </button>
+        <button class="icon-only-btn" id="fcHideBtn" aria-label="더 이상 안 보기">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><line x1="3" y1="3" x2="21" y2="21"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- ---- 뒤집기 모드 ---- -->
+    <div class="fc-mode-body" id="fcModeFlip">
+      <div class="flip-outer" id="fcFlipOuter">
+        <div class="flip-inner" id="fcFlipInner">
+          <div class="flip-face flip-face-front">
+            <div class="word-board" id="fcImageArea">
+              <p class="board-pos" id="fcPos">-</p>
+              <p class="board-word" id="fcWordFront">-</p>
+              <p class="board-roman" id="fcRomanFront">-</p>
+            </div>
+            <div class="meanings-row">
+              <span class="meaning-en" id="fcEngFront">-</span>
+              <span class="meaning-target" id="fcNativeFront"></span>
+            </div>
+            <p class="flip-hint" data-i18n="flipHint">눌러서 예문 보기</p>
+          </div>
+          <div class="flip-face flip-face-back">
+            <p class="fc-word-small" id="fcWordBack">-</p>
+            <p class="fc-meaning-en" id="fcMeaningBack">-</p>
+            <div id="fcBackExamples"></div>
+            <p class="listen-hint">💬 문장을 터치하면 들려줘요 · Touch to listen</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ---- 펼쳐보기 모드 ---- -->
+    <div class="fc-mode-body" id="fcModeFlat" style="display:none;">
+      <div class="word-display-area">
+        <div class="word-row">
+          <h2 class="word-main" id="fcFlatWord">-</h2>
+          <span class="word-roman" id="fcFlatRoman">-</span>
+          <button type="button" class="speak-btn" id="fcFlatSpeakBtn" aria-label="발음 듣기">🔊</button>
+        </div>
+        <p class="word-sub" id="fcFlatEnglish">-</p>
+        <p class="word-sub word-sub-native" id="fcFlatUserLang"></p>
+        <p class="word-sub" id="fcFlatExample">-</p>
+      </div>
+    </div>
+
+    <!-- ---- 예문 더보기 모드 ---- -->
+    <div class="fc-mode-body" id="fcModeExamples" style="display:none;">
+      <div id="fcExamplesList"></div>
+      <p class="listen-hint">💬 문장을 터치하면 들려줘요 · Touch to listen</p>
+    </div>
+
+    <!-- ---- 학습 진행 그리드 (평소엔 보임, 따라쓰기 열리면 숨김) ---- -->
+    <div class="word-progress-section" id="wordProgressSection">
+      <p class="word-progress-title"><span data-i18n="wpDone">지나온</span> <span id="wpDoneCount">0</span> / <span data-i18n="wpTodo">남은</span> <span id="wpTodoCount">0</span> · <button class="wp-mastered-label wp-mastered-btn" id="wpMasteredBtn"><span data-i18n="wpMastered">완료한 단어</span> <span id="wpMasteredCount">0</span>개</button></p>
+      <div class="word-progress-grid" id="wordProgressGrid"></div>
+    </div>
+
+    <!-- ---- 접이식 따라쓰기 키보드 (모드바디 바로 아래) ---- -->
+    <div class="keyboard-section" id="keyboard-wrapper">
+      <div class="keyboard-inner">
+        <div class="hint-bar" id="build-prompt-hint">💡 자판으로 써보세요 · 뜻: -</div>
+        <div class="input-display" id="build-word-display" tabindex="0"></div>
+        <div class="v-keyboard">
+          <div class="keyboard-row" id="kb-row-1"></div>
+          <div class="keyboard-row" id="kb-row-2"></div>
+          <div class="keyboard-row" id="kb-row-3"></div>
+          <div class="keyboard-row keyboard-controls-row">
+            <button class="key key-fill" id="kbPrevBtn" aria-label="이전 단어">←</button>
+            <button class="key icon-key kb-shift-label" id="kb-shift-btn" data-key="shift" aria-label="쌍자음/이중모음" title="쌍자음/이중모음">⇧<span>ㄲㅃㅘ</span></button>
+            <button class="key icon-key" id="kb-backspace-btn" data-key="backspace" aria-label="한 글자 지우기" title="한 글자 지우기">⌫</button>
+            <button class="key icon-key" id="build-clear-btn" aria-label="전체 지우기" title="전체 지우기">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+            </button>
+            <button class="key icon-key" id="kbListenBtn" aria-label="발음 듣기" title="발음 듣기">🔊</button>
+            <button class="key icon-key action-check" id="build-check-btn" aria-label="확인" title="확인">✓</button>
+            <button class="key key-fill" id="kbNextBtn" aria-label="다음 단어">→</button>
+          </div>
+        </div>
+        <p id="build-result" class="build-result"></p>
+      </div>
+    </div>
+
+    <div class="bottom-nav" id="outerBottomNav">
+      <button class="nav-btn" id="fcPrevBtn">← <span data-i18n="prevWord">이전</span></button>
+      <button class="nav-btn nav-btn-primary" id="fcSpeakBtn">🔊 <span data-i18n="listenPronunciation">발음 듣기</span></button>
+      <button class="nav-btn" id="fcNextBtn"><span data-i18n="nextWord">다음</span> →</button>
+    </div>
+  </div>
+</div>
+
+<!-- [우] 단어 목록 오프캔버스 -->
+<div class="right-sidebar" id="right-sidebar">
+  <div class="sidebar-title" id="sidebarTitle">학습 목록</div>
+
+  <div class="sidebar-search-row">
+    <div class="sidebar-search-display" id="sidebarSearchDisplay" tabindex="0">검색어 입력...</div>
+    <button class="sidebar-search-kbd-btn" id="sidebarSearchKbdBtn" aria-label="검색 키보드">⌨</button>
+    <button class="sidebar-search-clear-btn" id="sidebarSearchClearBtn" aria-label="검색어 지우기">✕</button>
+  </div>
+  <div class="sidebar-search-keyboard" id="sidebarSearchKeyboard">
+    <div class="ssk-inner">
+      <div class="keyboard-row" id="ssk-row-1"></div>
+      <div class="keyboard-row" id="ssk-row-2"></div>
+      <div class="keyboard-row" id="ssk-row-3"></div>
+      <div class="keyboard-row">
+        <button class="key icon-key kb-shift-label" id="ssk-shift-btn" data-key="shift" aria-label="쌍자음/이중모음" title="쌍자음/이중모음">⇧<span>ㄲㅃㅚ</span></button>
+        <button class="key icon-key" id="ssk-backspace-btn" data-key="backspace" aria-label="지우기">⌫</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="sidebar-list" id="sidebarList"></div>
+</div>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- 공용 단어목록 모달 (마스터단어/학습이력 등 여러 곳에서 재사용) -->
+<div class="word-list-modal-overlay" id="wordListModalOverlay">
+  <div class="word-list-modal">
+    <button class="word-list-modal-close" id="wordListModalClose" aria-label="닫기">✕</button>
+    <p class="word-list-modal-title" id="wordListModalTitle">-</p>
+    <div class="word-list-modal-body" id="wordListModalBody"></div>
+  </div>
+</div>
+
+<script>
+// hangul-compose.js가 필요로 하는 자모 순서 테이블 (js/data.js 상태와 무관하게 항상 보장되도록 직접 정의)
+const RR_CHO_LIST = ['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+const RR_JUNG_LIST = ['ㅏ','ㅐ','ㅑ','ㅒ','ㅓ','ㅔ','ㅕ','ㅖ','ㅗ','ㅘ','ㅙ','ㅚ','ㅛ','ㅜ','ㅝ','ㅞ','ㅟ','ㅠ','ㅡ','ㅢ','ㅣ'];
+const RR_JONG_LIST = ['','ㄱ','ㄲ','ㄳ','ㄴ','ㄵ','ㄶ','ㄷ','ㄹ','ㄺ','ㄻ','ㄼ','ㄽ','ㄾ','ㄿ','ㅀ','ㅁ','ㅂ','ㅄ','ㅅ','ㅆ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+</script>
+<script src="js/romanize.js"></script>
+<script src="js/hangul-compose.js"></script>
+<script src="js/speak.js"></script>
+<script src="js/lang-pref-hangul.js"></script>
+<script src="js/ui-i18n-hangul.js"></script>
+<script src="js/progress-topik.js"></script>
+<script src="js/translate-helper.js"></script>
+<script>
+(function () {
+
+  // ---------- 데이터 로딩 ----------
+  function loadScript(src) {
+    return new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = src;
+      s.onload = resolve;
+      s.onerror = () => reject(new Error('스크립트 로드 실패: ' + src));
+      document.head.appendChild(s);
+    });
+  }
+
+  async function loadTopikData(langCode) {
+    const scripts = ['data/topik_core.js', 'data/nvsentences.js'];
+    const useStatic = (typeof isStaticLangSupported === 'function') ? isStaticLangSupported(langCode) : (langCode !== 'en');
+    if (useStatic) scripts.push('data/topik_lang_' + langCode + '.js');
+    await Promise.all(scripts.map(loadScript));
+    const langData = useStatic ? window['TOPIK_LANG_' + langCode.toUpperCase()] : null;
+    return TOPIK_CORE.map(word => {
+      const naver = (typeof NV_SENTENCES !== 'undefined' && NV_SENTENCES[word.id]) || null;
+      return {
+        ...word,
+        translation: langData ? (langData[word.id] || null) : null,
+        naverExamplesPos: naver ? naver.pos : [],
+        naverExamplesNeg: naver ? naver.neg : [],
+      };
+    });
+  }
+
+  function isFavorite(id) { return JSON.parse(localStorage.getItem('topik_favorites') || '[]').includes(id); }
+  function toggleFavorite(id) {
+    let favs = JSON.parse(localStorage.getItem('topik_favorites') || '[]');
+    favs = favs.includes(id) ? favs.filter(x => x !== id) : [...favs, id];
+    localStorage.setItem('topik_favorites', JSON.stringify(favs));
+  }
+  function isDismissed(id) { return JSON.parse(localStorage.getItem('topik_dismissed') || '[]').includes(id); }
+  function getDismissedCount() { return JSON.parse(localStorage.getItem('topik_dismissed') || '[]').length; }
+  function dismissWord(id) {
+    let d = JSON.parse(localStorage.getItem('topik_dismissed') || '[]');
+    if (!d.includes(id)) d.push(id);
+    localStorage.setItem('topik_dismissed', JSON.stringify(d));
+  }
+  function lastIndexKey(grade) { return 'topik_last_index_g' + grade; }
+  function saveLastIndex(grade, idx) { localStorage.setItem(lastIndexKey(grade), String(idx)); }
+  function getLastIndex(grade) {
+    const v = parseInt(localStorage.getItem(lastIndexKey(grade)), 10);
+    return Number.isFinite(v) ? v : 0;
+  }
+  function highlightWordInSentence(sentence, word) {
+    if (!sentence) return '';
+    return sentence.split(word).join('<mark>' + word + '</mark>');
+  }
+
+  const params = new URLSearchParams(location.search);
+  let grade = parseInt(params.get('grade'), 10);
+  if (!(grade >= 1 && grade <= 6)) {
+    grade = (typeof getSavedGrade === 'function') ? getSavedGrade() : 1;
+  }
+
+  const gradeSelect = document.getElementById('fcGradeSelect');
+  gradeSelect.value = String(grade);
+  gradeSelect.addEventListener('change', () => {
+    if (typeof saveGrade === 'function') saveGrade(Number(gradeSelect.value));
+    location.href = 'index.html?grade=' + gradeSelect.value;
+  });
+
+  // ---- 탭 전환 ----
+  const modeSections = {
+    flip: document.getElementById('fcModeFlip'),
+    flat: document.getElementById('fcModeFlat'),
+    examples: document.getElementById('fcModeExamples'),
+  };
+  let activeMode = 'flip';
+  document.querySelectorAll('.fc-mode-tabs .mode-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.fc-mode-tabs .mode-tab').forEach(t => t.removeAttribute('data-active'));
+      tab.setAttribute('data-active', '1');
+      activeMode = tab.dataset.mode;
+      if ('speechSynthesis' in window) speechSynthesis.cancel();
+      Object.entries(modeSections).forEach(([key, el]) => { el.style.display = key === tab.dataset.mode ? '' : 'none'; });
+    });
+  });
+
+  // ---- 좌측 메뉴 버튼: js/nav-hangul.js가 플로팅 버튼을 자체 생성해서 드로어를 엽니다 ----
+
+  // ---- 우측 단어목록 오프캔버스 ----
+  const rightBtn = document.getElementById('right-menu-btn');
+  const sidebar = document.getElementById('right-sidebar');
+  const sidebarOverlay = document.getElementById('sidebarOverlay');
+  function closeSidebar() { sidebar.classList.remove('open'); sidebarOverlay.classList.remove('open'); }
+  rightBtn.addEventListener('click', () => {
+    sidebar.classList.toggle('open');
+    sidebarOverlay.classList.toggle('open');
+  });
+  sidebarOverlay.addEventListener('click', closeSidebar);
+
+  // ---- 공용 단어목록 모달 (마스터단어/학습이력 등에서 재사용) ----
+  // 사용법: showWordListModal("완전히 익힌 단어", [{word:"가게", roman:"gage"}, ...], onWordClick)
+  const wordListModalOverlay = document.getElementById('wordListModalOverlay');
+  const wordListModalTitle = document.getElementById('wordListModalTitle');
+  const wordListModalBody = document.getElementById('wordListModalBody');
+  const wordListModalClose = document.getElementById('wordListModalClose');
+
+  function showWordListModal(title, items, onWordClick) {
+    wordListModalTitle.textContent = title + ' (' + items.length + '개)';
+    wordListModalBody.innerHTML = items.length
+      ? items.map((it, i) =>
+          '<button class="wlm-item" data-i="' + i + '">' +
+          '<span>' + it.word + '</span>' +
+          (it.roman ? '<span class="wlm-roman">' + it.roman + '</span>' : '') +
+          '</button>'
+        ).join('')
+      : '<p class="wlm-empty">아직 없어요.</p>';
+
+    wordListModalBody.querySelectorAll('.wlm-item').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const item = items[parseInt(btn.dataset.i, 10)];
+        if (onWordClick) onWordClick(item);
+      });
+    });
+
+    wordListModalOverlay.classList.add('open');
+  }
+  function closeWordListModal() { wordListModalOverlay.classList.remove('open'); }
+  wordListModalClose.addEventListener('click', closeWordListModal);
+  wordListModalOverlay.addEventListener('click', (e) => { if (e.target === wordListModalOverlay) closeWordListModal(); });
+
+
+  // ---- 따라쓰기 아코디언 ----
+  const kbdBtn = document.getElementById('kbd-toggle-btn');
+  const kbdSection = document.getElementById('keyboard-wrapper');
+  const outerBottomNav = document.getElementById('outerBottomNav');
+  const wordProgressSection = document.getElementById('wordProgressSection');
+  kbdBtn.addEventListener('click', () => {
+    const willOpen = !kbdSection.classList.contains('open');
+    kbdSection.classList.toggle('open', willOpen);
+    kbdBtn.classList.toggle('active', willOpen);
+    outerBottomNav.style.display = willOpen ? 'none' : '';
+    wordProgressSection.style.display = willOpen ? 'none' : '';
+  });
+
+  function emptyMsg() {
+    document.querySelector('.flash-card-container').innerHTML = '<p class="fc-empty">이 급수에는 아직 등록된 단어가 없어요.</p>';
+  }
+
+  // ---- DOM 참조 ----
+  const flipOuter = document.getElementById('fcFlipOuter');
+  const imageArea = document.getElementById('fcImageArea');
+  const posEl = document.getElementById('fcPos');
+  const wordFront = document.getElementById('fcWordFront');
+  const romanFront = document.getElementById('fcRomanFront');
+  const engFront = document.getElementById('fcEngFront');
+  const nativeFront = document.getElementById('fcNativeFront');
+  const favBtn = document.getElementById('fcFavBtn');
+  const hideBtn = document.getElementById('fcHideBtn');
+  const wordBack = document.getElementById('fcWordBack');
+  const meaningBack = document.getElementById('fcMeaningBack');
+  const backExamples = document.getElementById('fcBackExamples');
+  const progressEl = document.getElementById('fcProgress');
+
+  const flatWord = document.getElementById('fcFlatWord');
+  const flatRoman = document.getElementById('fcFlatRoman');
+  const flatEnglish = document.getElementById('fcFlatEnglish');
+  const flatUserLang = document.getElementById('fcFlatUserLang');
+  const flatExample = document.getElementById('fcFlatExample');
+  const examplesList = document.getElementById('fcExamplesList');
+
+  const buildResultEl = document.getElementById('build-result');
+  const buildPromptHint = document.getElementById('build-prompt-hint');
+  const buildWordDisplay = document.getElementById('build-word-display');
+  const composer = createHangulComposer();
+  const sidebarList = document.getElementById('sidebarList');
+  const sidebarTitle = document.getElementById('sidebarTitle');
+
+  function renderBuildWord() { buildWordDisplay.textContent = composer.getWord(); }
+
+  (async function main() {
+    const userLang = getSavedUserLang();
+    let WORDS;
+    try {
+      WORDS = await loadTopikData(userLang);
+    } catch (e) {
+      console.error(e);
+      document.querySelector('.flash-card-container').innerHTML = '<p class="fc-empty">데이터를 불러오지 못했습니다. 새로고침 해주세요.</p>';
+      return;
+    }
+
+    let pool = WORDS.filter(w => String(w.grade || '').startsWith(String(grade)) && !isDismissed(w.id));
+    if (pool.length === 0) { emptyMsg(); return; }
+
+    pool = pool.slice();
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+
+    let idx = getLastIndex(grade);
+    if (idx >= pool.length) idx = 0;
+
+    let isFlipped = false;
+    let currentBackExampleKors = [];
+    let currentFlatExampleKors = [];
+    let currentMoreExampleKors = [];
+
+    function getSpokenTexts() {
+      const w = currentWord();
+      if (activeMode === 'flip' && isFlipped && currentBackExampleKors.length) return currentBackExampleKors;
+      if (activeMode === 'flat' && currentFlatExampleKors.length) return currentFlatExampleKors;
+      if (activeMode === 'examples' && currentMoreExampleKors.length) return currentMoreExampleKors;
+      return [w.word];
+    }
+
+    sidebarTitle.textContent = '학습 목록 (' + grade + '급)';
+
+    // ---- 사이드바 검색 (전용 가상키보드) ----
+    const searchComposer = createHangulComposer();
+    const searchDisplay = document.getElementById('sidebarSearchDisplay');
+    const searchKbdBtn = document.getElementById('sidebarSearchKbdBtn');
+    const searchClearBtn = document.getElementById('sidebarSearchClearBtn');
+    const searchKeyboard = document.getElementById('sidebarSearchKeyboard');
+
+    function renderSearchDisplay() {
+      const text = searchComposer.getWord();
+      searchDisplay.textContent = text || '검색어 입력...';
+      searchDisplay.classList.toggle('empty', !text);
+      renderSidebarList();
+    }
+    searchKbdBtn.addEventListener('click', () => searchKeyboard.classList.toggle('open'));
+    searchClearBtn.addEventListener('click', () => { searchComposer.clear(); renderSearchDisplay(); });
+
+    mountHangulKeyboard({
+      rowIds: ['ssk-row-1', 'ssk-row-2', 'ssk-row-3'],
+      shiftBtnId: 'ssk-shift-btn',
+      backspaceBtnId: 'ssk-backspace-btn',
+      onType: (jamo) => { searchComposer.typeJamo(jamo); renderSearchDisplay(); },
+      onBackspace: () => { searchComposer.backspace(); renderSearchDisplay(); }
+    });
+
+    function renderSidebarList() {
+      const query = searchComposer.getWord();
+      const filtered = query ? pool.filter(w => w.word.includes(query)) : pool;
+      sidebarList.innerHTML = filtered.map((w) => {
+        const i = pool.indexOf(w);
+        return '<div class="word-item' + (i === idx ? ' active' : '') + '" data-idx="' + i + '">' +
+          (i + 1) + '. ' + w.word + '</div>';
+      }).join('') || '<p class="sidebar-search-empty">검색 결과가 없어요.</p>';
+    }
+    sidebarList.addEventListener('click', (e) => {
+      const item = e.target.closest('.word-item');
+      if (!item) return;
+      idx = parseInt(item.dataset.idx, 10);
+      renderCard();
+      closeSidebar();
+    });
+
+    function currentWord() { return pool[idx]; }
+
+    // 10개국(정적 지원)이 아닌 "기타 언어"일 때만: 지금 보이는 카드 하나만 실시간 번역
+    async function fillCardExtraLangHint(w) {
+      const useStatic = (typeof isStaticLangSupported === 'function') ? isStaticLangSupported(userLang) : false;
+      if (useStatic || userLang === 'en' || typeof getNativeWordMeaning !== 'function') return;
+      const result = await getNativeWordMeaning(w.id, w.word, w.engMeaning, userLang, null);
+      if (!result.word) return;
+      w.translation = { word: result.word, meaning: result.meaning };
+      // 그 사이 카드가 넘어갔으면(다른 단어 보고 있으면) 화면은 갱신하지 않음
+      if (currentWord().id !== w.id) return;
+      nativeFront.textContent = result.word;
+      meaningBack.textContent = result.meaning || w.engMeaning || '';
+      flatUserLang.style.display = '';
+      flatUserLang.textContent = result.word + ' — ' + (result.meaning || '');
+    }
+
+    function renderCard() {
+      const w = currentWord();
+      progressEl.textContent = (idx + 1) + ' / ' + pool.length;
+      flipOuter.classList.remove('is-flipped');
+      isFlipped = false;
+      if (typeof logStudy === 'function') logStudy(w.id); // progress-topik.js (학습이력 캘린더 기록, 없으면 조용히 무시)
+
+      imageArea.dataset.pos = w.pos || '';
+      imageArea.classList.remove('no-image');
+      imageArea.style.backgroundImage = '';
+      if (w.image) {
+        const img = new Image();
+        img.onload = () => { imageArea.style.backgroundImage = "url('images/" + w.image + "')"; };
+        img.onerror = () => { imageArea.classList.add('no-image'); };
+        img.src = 'images/' + w.image;
+      } else {
+        imageArea.classList.add('no-image');
+      }
+
+      posEl.textContent = '[' + (w.pos || '') + ']';
+      wordFront.textContent = w.word;
+      romanFront.textContent = w.roman || '';
+      engFront.textContent = w.engWord || '';
+      nativeFront.textContent = w.translation ? w.translation.word : '';
+      favBtn.classList.toggle('active', isFavorite(w.id));
+
+      wordBack.textContent = w.word;
+      meaningBack.textContent = w.translation ? w.translation.meaning : (w.engMeaning || '');
+
+      const backEx = (w.naverExamplesPos && w.naverExamplesPos.length)
+        ? w.naverExamplesPos.slice(0, 2)
+        : (w.examplesKor || []).slice(0, 2).map(k => ({ kor: k, eng: '' }));
+      backExamples.innerHTML = backEx.map(ex =>
+        '<div class="fc-back-example-item" data-kor="' + encodeURIComponent(ex.kor) + '">' +
+        '<p class="fc-back-example-kor">' + highlightWordInSentence(ex.kor, w.word) + '</p>' +
+        (ex.eng ? '<p class="fc-back-example-eng">' + ex.eng + '</p>' : '') +
+        '</div>'
+      ).join('');
+      currentBackExampleKors = backEx.map(ex => ex.kor);
+
+      flatWord.textContent = w.word;
+      flatRoman.textContent = w.roman || '';
+      flatEnglish.textContent = w.engMeaning || w.engWord || '(영어 뜻풀이 준비 중)';
+      if (!w.translation) {
+        flatUserLang.style.display = 'none';
+      } else {
+        flatUserLang.style.display = '';
+        flatUserLang.textContent = w.translation.word + ' — ' + (w.translation.meaning || '');
+      }
+
+      const allExamples = (w.naverExamplesPos && w.naverExamplesPos.length)
+        ? w.naverExamplesPos.map(e => ({ kor: e.kor, eng: e.eng }))
+        : (w.examplesKor || []).map(k => ({ kor: k, eng: '' }));
+      flatExample.innerHTML = allExamples.length
+        ? highlightWordInSentence(allExamples[0].kor, w.word) +
+          (allExamples[0].eng ? '<br><span class="fc-example-eng-sub">' + allExamples[0].eng + '</span>' : '')
+        : '(예문 준비 중)';
+      currentFlatExampleKors = allExamples.length ? [allExamples[0].kor] : [];
+
+      const moreExamples = allExamples.slice(1);
+      examplesList.innerHTML = moreExamples.length
+        ? moreExamples.map(ex =>
+            '<div class="fc-example-row" data-kor="' + encodeURIComponent(ex.kor) + '">' +
+            highlightWordInSentence(ex.kor, w.word) +
+            '<br><span class="fc-example-roman-sub">' + romanizeSentence(ex.kor) + '</span>' +
+            (ex.eng ? '<br><span class="fc-example-eng-sub">' + ex.eng + '</span>' : '') + '</div>'
+          ).join('')
+        : '<p class="fc-examples-empty">이 단어는 추가 예문이 아직 없어요.</p>';
+      currentMoreExampleKors = moreExamples.map(ex => ex.kor);
+
+
+      buildPromptHint.textContent = '💡 자판으로 써보세요 · 뜻: ' + (w.engWord || '-');
+      composer.clear();
+      renderBuildWord();
+      buildResultEl.textContent = '';
+
+      saveLastIndex(grade, idx);
+      renderSidebarList();
+      renderWordProgressGrid();
+      fillCardExtraLangHint(w);
+    }
+
+    const wordProgressGrid = document.getElementById('wordProgressGrid');
+    const wpDoneCount = document.getElementById('wpDoneCount');
+    const wpTodoCount = document.getElementById('wpTodoCount');
+    const wpMasteredCount = document.getElementById('wpMasteredCount');
+    const wpMasteredBtn = document.getElementById('wpMasteredBtn');
+
+    wpMasteredBtn.addEventListener('click', () => {
+      const dismissedIds = JSON.parse(localStorage.getItem('topik_dismissed') || '[]');
+      const dismissedWords = dismissedIds
+        .map(id => WORDS.find(w => w.id === id))
+        .filter(Boolean)
+        .map(w => ({ word: w.word, roman: w.roman, id: w.id, grade: w.grade }));
+
+      showWordListModal(typeof t === 'function' ? t('wpMastered') : '완료한 단어', dismissedWords, (item) => {
+        speakKorean(item.word);
+      });
+    });
+
+    function renderWordProgressGrid() {
+      wpDoneCount.textContent = idx;
+      wpTodoCount.textContent = pool.length - idx - 1;
+      wpMasteredCount.textContent = getDismissedCount();
+
+      // 전체를 매번 다 그리면 무거우니(최대 2580개), 현재 위치 주변만 표시
+      const windowSize = 60;
+      const start = Math.max(0, idx - windowSize / 2);
+      const end = Math.min(pool.length, start + windowSize);
+      const windowed = pool.slice(start, end);
+
+      wordProgressGrid.innerHTML = windowed.map((w, wi) => {
+        const i = start + wi;
+        const status = i < idx ? 'done' : (i === idx ? 'current' : 'todo');
+        return '<button class="wp-chip wp-' + status + '" data-idx="' + i + '" title="' + w.word + '">' + w.word + '</button>';
+      }).join('');
+    }
+    wordProgressGrid.addEventListener('click', (e) => {
+      const chip = e.target.closest('.wp-chip');
+      if (!chip) return;
+      idx = parseInt(chip.dataset.idx, 10);
+      renderCard();
+    });
+
+    // 구글 무료(비공식) 번역 - translateText()는 js/translate-helper.js 공용 모듈에서 제공
+
+    function makeTapToListen(container) {
+      container.addEventListener('click', async (e) => {
+        const item = e.target.closest('[data-kor]');
+        if (!item) return;
+        const kor = decodeURIComponent(item.dataset.kor);
+        speakKorean(kor);
+
+        // 이미 번역 펼쳐져 있으면 접기(토글)
+        const existing = item.querySelector('.tap-translation');
+        if (existing) { existing.remove(); return; }
+
+        const userLang = getSavedUserLang();
+        if (userLang === 'en' || userLang === 'ko') return; // 영어는 이미 예문에 있으니 생략
+
+        const transEl = document.createElement('p');
+        transEl.className = 'tap-translation';
+        transEl.textContent = '번역 중...';
+        item.appendChild(transEl);
+        try {
+          transEl.textContent = await translateText(kor, userLang);
+        } catch (err) {
+          transEl.textContent = '(번역 실패)';
+        }
+      });
+    }
+    makeTapToListen(backExamples);
+    makeTapToListen(examplesList);
+
+    function goNext() { idx = (idx + 1) % pool.length; renderCard(); }
+    function goPrev() { idx = (idx - 1 + pool.length) % pool.length; renderCard(); }
+
+    let wasSwipe = false;
+    let touchStartX = 0, touchStartY = 0;
+    flipOuter.addEventListener('touchstart', (e) => {
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+      wasSwipe = false;
+    }, { passive: true });
+    flipOuter.addEventListener('touchend', (e) => {
+      const dx = e.changedTouches[0].clientX - touchStartX;
+      const dy = e.changedTouches[0].clientY - touchStartY;
+      if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
+        wasSwipe = true;
+        if (dx < 0) goNext(); else goPrev();
+      }
+    }, { passive: true });
+    flipOuter.addEventListener('click', () => {
+      if (wasSwipe) { wasSwipe = false; return; }
+      isFlipped = !isFlipped;
+      flipOuter.classList.toggle('is-flipped', isFlipped);
+    });
+    favBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleFavorite(currentWord().id); favBtn.classList.toggle('active', isFavorite(currentWord().id)); });
+    hideBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      dismissWord(currentWord().id);
+      pool.splice(idx, 1);
+      if (pool.length === 0) { emptyMsg(); return; }
+      if (idx >= pool.length) idx = 0;
+      renderCard();
+    });
+
+    document.getElementById('fcFlatSpeakBtn').addEventListener('click', () => toggleSpeakKoreanSequence(getSpokenTexts()));
+    document.getElementById('fcSpeakBtn').addEventListener('click', () => toggleSpeakKoreanSequence(getSpokenTexts()));
+    document.getElementById('kbListenBtn').addEventListener('click', () => toggleSpeakKoreanSequence(getSpokenTexts()));
+    document.getElementById('fcPrevBtn').addEventListener('click', goPrev);
+    document.getElementById('fcNextBtn').addEventListener('click', goNext);
+    document.getElementById('kbPrevBtn').addEventListener('click', goPrev);
+    document.getElementById('kbNextBtn').addEventListener('click', goNext);
+
+    mountHangulKeyboard({
+      rowIds: ['kb-row-1', 'kb-row-2', 'kb-row-3'],
+      shiftBtnId: 'kb-shift-btn',
+      backspaceBtnId: 'kb-backspace-btn',
+      onType: (jamo) => { composer.typeJamo(jamo); renderBuildWord(); buildResultEl.textContent = ''; },
+      onBackspace: () => { composer.backspace(); renderBuildWord(); buildResultEl.textContent = ''; }
+    });
+
+    buildWordDisplay.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace') { e.preventDefault(); composer.backspace(); renderBuildWord(); buildResultEl.textContent = ''; }
+      else if (e.key === 'Enter') { e.preventDefault(); document.getElementById('build-check-btn').click(); }
+    });
+    document.getElementById('build-clear-btn').addEventListener('click', () => { composer.clear(); renderBuildWord(); buildResultEl.textContent = ''; });
+    document.getElementById('build-check-btn').addEventListener('click', () => {
+      const word = composer.getWord();
+      const target = currentWord().word;
+      if (!word) { buildResultEl.textContent = ''; return; }
+      if (word === target) {
+        buildResultEl.innerHTML = '<span class="ok">정답이에요! "' + target + '"</span>';
+        speakKorean('참 잘했어요');
+      } else {
+        buildResultEl.innerHTML = '<span class="retry">아직이에요. 정답: "' + target + '"</span>';
+      }
+    });
+
+    renderCard();
+  })();
+
+})();
+</script>
+<script src="js/nav-hangul.js"></script>
+</body>
+</html>

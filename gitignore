@@ -1,0 +1,30 @@
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 에디터
+.vscode/
+.idea/
+*.swp
+
+# 로그/임시
+*.log
+*.tmp
+npm-debug.log*
+
+# 백업/중복 파일 (작업하다 남는 것들 — 커밋에 안 올라가게)
+*복사본*
+* - 복사본*
+*-gemin.*
+* (copy).*
+*.bak
+*.old
+
+# 빌드/의존성 (혹시 나중에 빌드 도구 쓰게 되면)
+node_modules/
+dist/
+
+# 개인 설정/키
+.env
+api_keys.json

@@ -1,0 +1,264 @@
+/* Lingo Power: Hangul Learning for TOPIK — grade screens (grade-select.html, grade.html)
+   기존 css/style.css의 :root 토큰(--bg, --ink, --accent-red, --accent-blue 등)을 그대로 사용.
+   이 파일은 급수 화면 전용 추가 스타일만 담고, style.css는 건드리지 않습니다. */
+
+:root {
+    --accent-gold: #A97C1F;
+    --accent-gold-soft: #F2E7CF;
+}
+
+/* ---------- grade-select.html ---------- */
+
+.grade-select-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.grade-select-card {
+    padding: 22px 6px 16px;
+    border-radius: var(--radius);
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    text-align: center;
+    cursor: pointer;
+}
+
+.grade-select-card:hover {
+    filter: brightness(0.98);
+}
+
+.grade-select-card .num {
+    font-family: 'Song Myung', serif;
+    font-size: 30px;
+    color: var(--ink);
+    line-height: 1;
+}
+
+.grade-select-card .grp {
+    display: block;
+    margin-top: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ink-soft);
+}
+
+.grade-select-card[data-group="beginner"] { border-color: var(--accent-blue); }
+.grade-select-card[data-group="beginner"] .grp { color: var(--accent-blue); }
+
+.grade-select-card[data-group="intermediate"] { border-color: var(--accent-red); }
+.grade-select-card[data-group="intermediate"] .grp { color: var(--accent-red); }
+
+.grade-select-card[data-group="advanced"] { border-color: var(--accent-gold); }
+.grade-select-card[data-group="advanced"] .grp { color: var(--accent-gold); }
+
+.grade-select-legend {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 18px;
+    font-size: 12px;
+    color: var(--ink-soft);
+}
+
+.grade-select-legend span::before {
+    content: "";
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 5px;
+    vertical-align: middle;
+}
+
+.grade-select-legend .lg-beginner::before { background: var(--accent-blue); }
+.grade-select-legend .lg-intermediate::before { background: var(--accent-red); }
+.grade-select-legend .lg-advanced::before { background: var(--accent-gold); }
+
+/* ---------- grade.html ---------- */
+
+.grade-back-link {
+    display: inline-block;
+    margin: 14px 0 0 20px;
+    font-size: 13px;
+    color: var(--ink-soft);
+    text-decoration: none;
+}
+
+.grade-back-link:hover {
+    color: var(--accent-blue);
+}
+
+.grade-layout {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding: 16px 20px 40px;
+}
+
+.grade-word-panel {
+    flex: 1;
+    min-width: 240px;
+    max-height: 520px;
+    overflow-y: auto;
+}
+
+.grade-word-panel .label {
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin: 0 0 10px;
+}
+
+.grade-word-row {
+    padding: 9px 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 14px;
+    margin-bottom: 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.grade-word-row:hover {
+    border-color: var(--accent-blue);
+}
+
+.grade-word-row.is-current {
+    background: var(--accent-blue-soft);
+    border-color: var(--accent-blue);
+}
+
+.grade-word-row .gw-word {
+    font-weight: 600;
+    color: var(--ink);
+}
+
+.grade-word-row .gw-meaning {
+    font-size: 12px;
+    color: var(--ink-soft);
+    text-align: right;
+    flex: 1;
+    min-width: 0;
+    margin-left: 8px;
+}
+
+.grade-practice-panel {
+    flex: 1;
+    min-width: 300px;
+}
+
+.build-label {
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin: 14px 0 6px;
+}
+
+.build-label:first-child {
+    margin-top: 0;
+}
+
+.build-prompt-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.build-prompt-row .build-listen-btn {
+    flex: 0 0 auto;
+    width: auto;
+    margin-top: 0;
+    padding: 8px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    cursor: pointer;
+}
+
+.build-prompt-hint {
+    flex: 1;
+    min-width: 0;
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin: 0;
+}
+
+.build-word-display {
+    min-height: 44px;
+    padding: 10px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface);
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--ink);
+}
+
+.build-word-display:focus {
+    outline: none;
+    border-color: var(--accent-blue);
+}
+
+.hangul-keyboard {
+    margin-top: 10px;
+}
+
+.kb-row {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 4px;
+}
+
+.kb-key {
+    flex: 1;
+    padding: 10px 0;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    font-size: 15px;
+    cursor: pointer;
+    color: var(--ink);
+}
+
+.kb-key:hover {
+    background: var(--bg);
+}
+
+.kb-key-wide {
+    flex: 2;
+    font-size: 12px;
+}
+
+.build-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.build-actions button {
+    flex: 1;
+    padding: 9px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    cursor: pointer;
+    color: var(--ink);
+}
+
+.build-result {
+    margin-top: 8px;
+    font-size: 13px;
+    min-height: 18px;
+}
+
+.build-result .ok { color: var(--accent-blue); font-weight: 500; }
+.build-result .retry { color: var(--accent-red); }
+
+@media (max-width: 640px) {
+    .grade-select-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .grade-layout { padding: 12px; }
+}

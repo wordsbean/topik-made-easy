@@ -1,0 +1,293 @@
+:root {
+    --lq-primary: #1e40af;
+    --lq-primary-light: #eff6ff;
+    --lq-header: #1e293b;
+    --lq-header2: #334155;
+    --lq-ink: #0f172a;
+    --lq-muted: #64748b;
+    --lq-border: #e2e8f0;
+    --lq-card: #ffffff;
+    --lq-teal: #0d9488;
+    --lq-blue: #2563eb;
+    --lq-red: #dc2626;
+    --lq-green: #1e8e4f;
+    --lq-orange: #ea580c;
+    --lq-wine: #7b2d3f;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: #f8fafc;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px 16px 110px;
+    color: var(--lq-ink);
+}
+
+.lq-home-btn {
+    position: absolute; top: 14px; right: 16px;
+    background: rgba(255,255,255,0.15); border-radius: 8px;
+    width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;
+    text-decoration: none; font-size: 16px;
+}
+
+header.screen-only {
+    position: relative;
+    background: linear-gradient(135deg, var(--lq-header), var(--lq-header2));
+    border-radius: 16px;
+    padding: 16px 22px;
+    margin-bottom: 12px;
+}
+
+header.screen-only h1 {
+    margin: 0;
+    font-size: 19px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.puzzle-level {
+    background: var(--lq-teal);
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+}
+
+.puzzle-batch-number {
+    background: var(--lq-orange);
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+}
+
+.puzzle-title { display: none; }
+
+/* ---------- 상단 로마자 토글 ---------- */
+.lq-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.lq-roman-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--lq-card);
+    border: 1px solid var(--lq-border);
+    border-radius: 999px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--lq-muted);
+    cursor: pointer;
+    user-select: none;
+}
+
+.lq-roman-toggle input { accent-color: var(--lq-blue); }
+
+.lq-loading {
+    text-align: center;
+    color: var(--lq-muted);
+    font-size: 13px;
+    padding: 40px 0;
+}
+
+.lq-section-title {
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--lq-ink);
+    margin: 22px 0 10px;
+    padding-left: 2px;
+}
+
+.lq-section-title:first-of-type { margin-top: 4px; }
+
+/* ---------- 카드 ---------- */
+.lq-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
+}
+
+.lq-card {
+    background: var(--lq-card);
+    border: 1px solid var(--lq-border);
+    border-radius: 16px;
+    box-shadow: 0 4px 16px rgba(15,23,42,0.06);
+    padding: 18px 20px;
+}
+
+.lq-card-top {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.lq-item-number {
+    font-weight: 800;
+    color: var(--lq-blue);
+}
+
+.lq-play-btn {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border: none;
+    background: var(--lq-primary);
+    color: #fff;
+    font-weight: 700;
+    font-size: 13px;
+    padding: 9px 16px;
+    border-radius: 999px;
+    cursor: pointer;
+}
+
+.lq-play-btn:hover { background: #1c3a9e; }
+
+/* ---------- 선택지 (카드형) ---------- */
+.lq-choices {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+}
+
+@media (max-width: 560px) {
+    .lq-choices { grid-template-columns: 1fr; }
+}
+
+.lq-choice-btn {
+    background: var(--lq-primary-light);
+    border: none;
+    color: var(--lq-ink);
+    text-align: left;
+    padding: 10px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    display: flex;
+    gap: 8px;
+}
+
+.lq-choice-btn:hover:not(:disabled) { background: #dbeafe; }
+.lq-choice-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.lq-choice-letter { font-weight: 800; color: var(--lq-blue); flex: 0 0 auto; }
+
+.lq-choice-body { min-width: 0; }
+
+.lq-choice-word {
+    font-weight: 700;
+    font-size: 15px;
+}
+
+.lq-choice-roman {
+    font-size: 11px;
+    color: var(--lq-teal);
+    margin-top: 1px;
+}
+
+body.roman-hidden .lq-choice-roman,
+body.roman-hidden .lq-roman-hint { display: none !important; }
+
+.lq-choice-eng {
+    font-size: 11px;
+    color: var(--lq-muted);
+    margin-top: 1px;
+}
+
+.lq-choice-native {
+    font-size: 11px;
+    color: var(--lq-wine);
+    margin-top: 1px;
+}
+
+.lq-choice-sentence {
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.lq-choice-btn.is-correct { background: #e9f9f0; }
+.lq-choice-btn.is-correct .lq-choice-word,
+.lq-choice-btn.is-correct .lq-choice-letter { color: var(--lq-green); }
+
+.lq-choice-btn.is-wrong {
+    background: #fdebea;
+    animation: lqShake 0.3s ease;
+}
+
+@keyframes lqShake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
+}
+
+.lq-item-status {
+    text-align: center;
+    font-size: 12px;
+    color: var(--lq-green);
+    font-weight: 700;
+    margin-top: 8px;
+    height: 16px;
+}
+
+body.mode-answer .lq-choice-btn { pointer-events: none; }
+body.mode-answer .lq-choice-btn.is-answer { background: #e9f9f0; }
+body.mode-answer .lq-choice-btn.is-answer .lq-choice-word,
+body.mode-answer .lq-choice-btn.is-answer .lq-choice-letter { color: var(--lq-green); }
+
+/* ---------- 정답 요약 표 ---------- */
+.answer-grid { display: none; margin-top: 20px; background: var(--lq-card); border-radius: 16px; box-shadow: 0 4px 16px rgba(15,23,42,0.06); overflow: hidden; }
+body.mode-answer .answer-grid { display: block; }
+.answer-grid table { width: 100%; border-collapse: collapse; }
+.answer-grid-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px 0; }
+.answer-grid-header h3 { font-size: 15px; margin: 0; }
+.answer-grid th { background: var(--lq-header); color: #fff; font-size: 13px; padding: 10px 12px; text-align: left; }
+.answer-grid td { padding: 10px 12px; font-size: 13px; border-bottom: 1px solid #eef1f6; vertical-align: middle; }
+.answer-grid .cell-word { font-weight: 700; }
+.cell-pronun { font-size: 11px; color: var(--lq-teal); margin-top: 2px; }
+.answer-speak-btn { width: 28px; height: 28px; border-radius: 50%; border: none; background: var(--lq-primary-light); color: var(--lq-primary); font-size: 13px; cursor: pointer; }
+.answer-grid + .answer-grid { margin-top: 14px; }
+
+/* ---------- 하단 컨트롤 ---------- */
+.pagination-controls {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;
+    padding: 12px; background: #fff; border-top: 1px solid var(--lq-border);
+    z-index: 20;
+}
+.lq-grade-select {
+    border: 1px solid var(--lq-border); border-radius: 10px; padding: 8px 12px; font-size: 13px;
+}
+.nav-button {
+    border: none; border-radius: 10px; padding: 9px 16px; font-size: 13px; font-weight: 600;
+    background: var(--lq-primary-light); color: var(--lq-primary); cursor: pointer;
+}
+.nav-button:hover { background: #dbeafe; }
+
+/* ---------- 인쇄 ---------- */
+@media print {
+    @page {
+        size: A4;
+        margin: 0.5cm;
+        @top-right { content: "TOPIK Made Easy — Lingo Power"; font-size: 0.8em; color: #555; }
+        @bottom-left { content: "Written by wordsbean"; font-size: 0.7em; color: #666; }
+        @bottom-center { content: "페이지 " counter(page) " / " counter(pages); font-size: 0.9em; color: #333; }
+    }
+
+    body { background: #fff; padding: 0; max-width: none; }
+    .screen-only, .lq-home-btn, .pagination-controls, .lq-play-btn, .lq-toolbar, .answer-speak-btn {
+        display: none !important;
+    }
+    .puzzle-title { display: block !important; font-size: 1.3em; margin: 0 0 0.3cm; }
+    .lq-card { border: 1px solid #ddd !important; box-shadow: none !important; page-break-inside: avoid; }
+}

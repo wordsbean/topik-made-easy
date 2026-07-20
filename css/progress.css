@@ -1,0 +1,375 @@
+/* Lingo Power: Hangul Learning for TOPIK — 학습 이력(progress.html)
+   css/style.css의 :root 토큰을 그대로 재사용합니다. */
+
+main.pgh-main {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 20px 16px 60px;
+}
+
+.pgh-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 16px;
+}
+
+.pgh-loading {
+    text-align: center;
+    color: var(--ink-soft);
+    font-size: 13px;
+    padding: 30px 0;
+}
+
+/* ---------- 요약 카드 ---------- */
+.pgh-summary {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.pgh-summary-item {
+    flex: 1 1 120px;
+    text-align: center;
+    background: var(--bg);
+    border-radius: 10px;
+    padding: 12px 8px;
+}
+
+.pgh-summary-item--clickable {
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.pgh-summary-item--clickable:hover {
+    background: var(--accent-blue-soft);
+}
+
+.pgh-summary-num {
+    font-family: 'Song Myung', serif;
+    font-size: 24px;
+    color: var(--accent-blue);
+}
+
+.pgh-summary-label {
+    font-size: 11px;
+    color: var(--ink-soft);
+    margin-top: 2px;
+}
+
+/* ---------- 달력 ---------- */
+.pgh-cal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+}
+
+.pgh-cal-title {
+    font-family: 'Song Myung', serif;
+    font-size: 16px;
+    color: var(--ink);
+}
+
+.pgh-cal-nav-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--accent-blue);
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.pgh-cal-nav-btn:hover {
+    background: var(--accent-blue-soft);
+}
+
+.pgh-cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+}
+
+.pgh-cal-weekday {
+    text-align: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--ink-soft);
+    padding-bottom: 4px;
+}
+
+.pgh-cal-day {
+    aspect-ratio: 1 / 1;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    color: var(--ink);
+    background: var(--bg);
+    position: relative;
+}
+
+.pgh-cal-day.is-empty {
+    background: transparent;
+}
+
+.pgh-cal-day.is-today {
+    outline: 2px solid var(--accent-blue);
+    outline-offset: -2px;
+}
+
+.pgh-cal-day.has-study {
+    background: var(--accent-blue-soft);
+    color: var(--accent-blue);
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.pgh-cal-day.has-study:hover {
+    background: var(--accent-red-soft);
+    color: var(--accent-red);
+}
+
+.pgh-cal-day.is-selected {
+    background: var(--accent-blue) !important;
+    color: #fff !important;
+}
+
+.pgh-cal-count {
+    font-size: 9px;
+    margin-top: 1px;
+}
+
+.pgh-cal-legend {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    justify-content: flex-end;
+    margin-top: 10px;
+    font-size: 11px;
+    color: var(--ink-soft);
+}
+
+.pgh-legend-swatch {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    background: var(--accent-blue-soft);
+    display: inline-block;
+}
+
+/* ---------- 날짜/목록 상세 ---------- */
+.pgh-detail {
+    display: none;
+}
+
+.pgh-detail.is-open {
+    display: block;
+}
+
+.pgh-detail-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+}
+
+.pgh-detail-title {
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--ink);
+}
+
+.pgh-btn {
+    flex: 0 0 auto;
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--ink);
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.pgh-btn:hover {
+    background: var(--accent-blue-soft);
+    color: var(--accent-blue);
+}
+
+.pgh-btn.pgh-danger {
+    background: var(--accent-red-soft);
+    color: var(--accent-red);
+}
+
+.pgh-btn.pgh-danger:hover {
+    filter: brightness(0.95);
+}
+
+.pgh-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    margin-top: 14px;
+}
+
+.pgh-page-info {
+    font-size: 12px;
+    color: var(--ink-soft);
+    font-weight: 600;
+}
+
+.pgh-icon-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: none;
+    background: var(--bg);
+    color: var(--ink-soft);
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.pgh-icon-btn:hover {
+    background: var(--accent-blue-soft);
+    color: var(--accent-blue);
+}
+
+.pgh-icon-btn.is-active {
+    background: var(--accent-red-soft);
+    color: var(--accent-red);
+}
+
+.pgh-detail-header-controls {
+    margin-right: auto;
+}
+
+.pgh-grid-wrap {
+    overflow-x: auto;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(33, 29, 26, 0.06);
+}
+
+.pgh-grid {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--surface);
+}
+
+.pgh-grid th {
+    background: var(--ink);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 10px 12px;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.pgh-grid td {
+    padding: 10px 12px;
+    font-size: 13px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+}
+
+.pgh-cell-thumb {
+    width: 46px;
+}
+
+.pgh-cell-thumb img {
+    width: 36px;
+    height: 36px;
+    border-radius: 6px;
+    object-fit: cover;
+    display: block;
+}
+
+.pgh-cell-word {
+    font-weight: 700;
+    color: var(--ink);
+    white-space: nowrap;
+}
+
+.pgh-cell-pronun {
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--accent-blue);
+    margin-top: 2px;
+}
+
+.pgh-cell-actions {
+    white-space: nowrap;
+    text-align: right;
+}
+
+.pgh-empty-msg {
+    text-align: center;
+    color: var(--ink-soft);
+    font-size: 13px;
+    padding: 20px 0;
+}
+
+/* ---------- 하단 관리 ---------- */
+.pgh-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.pgh-actions .pgh-btn {
+    width: 100%;
+    padding: 11px;
+}
+
+/* ---------- 인쇄 (날짜/목록 상세만 깔끔하게) ---------- */
+@media print {
+    @page {
+        size: A4;
+        margin: 1.2cm;
+    }
+
+    body {
+        background: #fff;
+    }
+
+    .hbh-btn,
+    .hbh-overlay,
+    .hbh-drawer,
+    header.app-header,
+    .pgh-card:not(.pgh-detail),
+    .pgh-btn,
+    .pgh-pagination {
+        display: none !important;
+    }
+
+    main.pgh-main {
+        max-width: none;
+        padding: 0;
+    }
+
+    .pgh-detail {
+        display: block !important;
+        border: none !important;
+        padding: 0 !important;
+    }
+
+    .pgh-grid tr {
+        page-break-inside: avoid;
+    }
+
+    .pgh-cell-actions,
+    th.pgh-cell-actions,
+    .pgh-detail-header-controls {
+        display: none !important;
+    }
+}

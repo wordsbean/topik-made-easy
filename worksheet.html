@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>한글 쓰기 연습 · Hangul Writing Practice</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/worksheet.css">
+<link rel="stylesheet" href="css/nav-hangul.css">
+</head>
+<body>
+
+<header class="app-header">
+  <a href="level0.html" class="mini-home-btn" aria-label="뒤로">←</a>
+  <p class="brand">Lingo Power</p>
+  <h1>쓰기 연습 · Writing Practice</h1>
+  <p class="tagline">글자를 보고 순서대로 4번씩 따라 써보세요</p>
+</header>
+
+<main>
+  <div class="ws-mode-tabs">
+    <button class="ws-mode-tab" data-set="consonant" data-active="1">자음<br><span>Consonants</span></button>
+    <button class="ws-mode-tab" data-set="doubleConsonant">쌍자음<br><span>Tense Cons.</span></button>
+    <button class="ws-mode-tab" data-set="vowel">모음<br><span>Vowels</span></button>
+    <button class="ws-mode-tab" data-set="diphthong">이중모음<br><span>Diphthongs</span></button>
+  </div>
+
+  <div id="ws-table" class="ws-table"></div>
+</main>
+
+<script src="js/data.js"></script>
+<script src="js/data-extended.js"></script>
+<script src="js/sound-values.js"></script>
+<script src="js/worksheet.js"></script>
+<script src="js/lang-pref-hangul.js"></script>
+<script src="js/ui-i18n-hangul.js"></script>
+<script src="js/nav-hangul.js"></script>
+</body>
+</html>

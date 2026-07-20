@@ -1,0 +1,344 @@
+:root {
+    --fb-primary: #1e40af;
+    --fb-primary-light: #eff6ff;
+    --fb-header: #1e293b;
+    --fb-header2: #334155;
+    --fb-ink: #0f172a;
+    --fb-muted: #64748b;
+    --fb-border: #e2e8f0;
+    --fb-card: #ffffff;
+    --fb-teal: #0d9488;
+    --fb-blue: #2563eb;
+    --fb-red: #dc2626;
+    --fb-green: #1e8e4f;
+    --fb-orange: #ea580c;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: #f8fafc;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px 16px 110px;
+    color: var(--fb-ink);
+}
+
+.fb-home-btn {
+    position: absolute; top: 14px; right: 16px;
+    background: rgba(255,255,255,0.15); border-radius: 8px;
+    width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;
+    text-decoration: none; font-size: 16px;
+}
+
+header.screen-only {
+    position: relative;
+    background: linear-gradient(135deg, var(--fb-header), var(--fb-header2));
+    border-radius: 16px;
+    padding: 16px 22px;
+    margin-bottom: 18px;
+}
+
+header.screen-only h1 {
+    margin: 0;
+    font-size: 19px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.puzzle-level {
+    background: var(--fb-teal);
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+}
+
+.puzzle-batch-number {
+    background: var(--fb-orange);
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+}
+
+.puzzle-title { display: none; }
+
+.fb-loading {
+    text-align: center;
+    color: var(--fb-muted);
+    font-size: 13px;
+    padding: 40px 0;
+}
+
+/* ---------- 카드 ---------- */
+.fb-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+}
+
+.fb-card {
+    background: var(--fb-card);
+    border: 1px solid var(--fb-border);
+    border-radius: 16px;
+    box-shadow: 0 4px 16px rgba(15,23,42,0.06);
+    padding: 18px 20px;
+}
+
+.fb-card-top {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.fb-thumb {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    object-fit: cover;
+    background: var(--fb-primary-light);
+    flex: 0 0 auto;
+    cursor: zoom-in;
+}
+
+.fb-item-number {
+    font-weight: 800;
+    color: var(--fb-blue);
+    margin-right: 4px;
+}
+
+.fb-hint {
+    font-size: 12px;
+    color: var(--fb-muted);
+}
+
+.fb-hint .native {
+    color: var(--fb-teal);
+    margin-left: 4px;
+}
+
+.fb-controls {
+    margin-left: auto;
+    display: flex;
+    gap: 4px;
+}
+
+.fb-speak-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: none;
+    background: var(--fb-primary-light);
+    color: var(--fb-primary);
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.fb-speak-btn:hover {
+    background: #dbeafe;
+}
+
+.fb-sentence {
+    font-size: 16px;
+    color: var(--fb-ink);
+    margin: 10px 0 2px;
+    line-height: 1.6;
+}
+
+.fb-sentence--playable {
+    cursor: pointer;
+    border-radius: 8px;
+    padding: 2px 4px;
+    margin-left: -4px;
+    margin-right: -4px;
+}
+
+.fb-sentence--playable:hover {
+    background: var(--fb-primary-light);
+}
+
+.fb-sentence .fb-blank,
+.fb-roman .fb-blank {
+    display: inline-block;
+    min-width: 54px;
+    border-bottom: 2px solid var(--fb-blue);
+    text-align: center;
+    color: var(--fb-blue);
+    font-weight: 800;
+}
+
+.fb-roman {
+    font-size: 12px;
+    color: var(--fb-teal);
+    margin: 0 0 8px;
+    line-height: 1.4;
+}
+
+.fb-roman .fb-blank {
+    min-width: 34px;
+    font-weight: 700;
+    border-bottom-width: 1.5px;
+}
+
+body.roman-hidden .fb-roman { display: none !important; }
+
+.fb-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 12px;
+}
+
+.fb-eng-sentence {
+    font-size: 12px;
+    color: var(--fb-muted);
+    font-style: italic;
+    margin-bottom: 14px;
+}
+
+.fb-native-sentence {
+    font-size: 12px;
+    color: #7b2d3f; /* 와인색 */
+    margin: 0 0 14px;
+}
+
+/* ---------- 4지선다 ---------- */
+.fb-choices {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+}
+
+@media (max-width: 480px) {
+    .fb-choices { grid-template-columns: 1fr; }
+}
+
+.fb-choice-btn {
+    background: var(--fb-primary-light);
+    border: none;
+    color: var(--fb-ink);
+    font-weight: 700;
+    font-size: 15px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.fb-choice-btn:hover:not(:disabled) {
+    background: #dbeafe;
+}
+
+.fb-choice-letter {
+    font-weight: 800;
+    color: var(--fb-blue);
+    flex: 0 0 auto;
+}
+
+.fb-choice-btn.is-correct {
+    background: #e9f9f0;
+    color: var(--fb-green);
+}
+.fb-choice-btn.is-correct .fb-choice-letter { color: var(--fb-green); }
+
+.fb-choice-btn.is-wrong {
+    background: #fdebea;
+    color: var(--fb-red);
+    animation: fbShake 0.3s ease;
+}
+
+@keyframes fbShake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
+}
+
+.fb-choice-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.fb-item-status {
+    text-align: center;
+    font-size: 12px;
+    color: var(--fb-green);
+    font-weight: 700;
+    margin-top: 8px;
+    height: 16px;
+}
+
+body.mode-answer .fb-choice-btn { pointer-events: none; }
+body.mode-answer .fb-choice-btn.is-answer { background: #e9f9f0; color: var(--fb-green); }
+body.mode-answer .fb-blank { color: var(--fb-red); }
+
+/* ---------- 정답 요약 표 ---------- */
+.answer-grid { display: none; margin-top: 20px; background: var(--fb-card); border-radius: 16px; box-shadow: 0 4px 16px rgba(15,23,42,0.06); overflow: hidden; }
+body.mode-answer .answer-grid { display: block; }
+.answer-grid table { width: 100%; border-collapse: collapse; }
+.answer-grid-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px 0; }
+.answer-grid-header h3 { font-size: 15px; margin: 0; }
+.answer-grid th { background: var(--fb-header); color: #fff; font-size: 13px; padding: 10px 12px; text-align: left; }
+.answer-grid td { padding: 10px 12px; font-size: 13px; border-bottom: 1px solid #eef1f6; vertical-align: middle; }
+.answer-grid .cell-word { font-weight: 700; }
+.cell-pronun { font-size: 11px; color: var(--fb-teal); margin-top: 2px; }
+.answer-grid .cell-thumb img { width: 36px; height: 36px; border-radius: 6px; object-fit: cover; display: block; }
+.answer-speak-btn { width: 28px; height: 28px; border-radius: 50%; border: none; background: var(--fb-primary-light); color: var(--fb-primary); font-size: 13px; cursor: pointer; }
+
+/* ---------- 라이트박스 ---------- */
+.img-lightbox {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 20, 33, 0.82);
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    cursor: zoom-out;
+}
+.img-lightbox.is-open { display: flex; }
+.img-lightbox img {
+    max-width: min(90vw, 480px);
+    max-height: 80vh;
+    border-radius: 10px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+}
+
+/* ---------- 하단 컨트롤 ---------- */
+.pagination-controls {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;
+    padding: 12px; background: #fff; border-top: 1px solid var(--fb-border);
+    z-index: 20;
+}
+.fb-grade-select {
+    border: 1px solid var(--fb-border); border-radius: 10px; padding: 8px 12px; font-size: 13px;
+}
+.nav-button {
+    border: none; border-radius: 10px; padding: 9px 16px; font-size: 13px; font-weight: 600;
+    background: var(--fb-primary-light); color: var(--fb-primary); cursor: pointer;
+}
+.nav-button:hover { background: #dbeafe; }
+
+/* ---------- 인쇄 ---------- */
+@media print {
+    @page {
+        size: A4;
+        margin: 0.5cm;
+        @top-right { content: "TOPIK Made Easy — Lingo Power"; font-size: 0.8em; color: #555; }
+        @bottom-left { content: "Written by wordsbean"; font-size: 0.7em; color: #666; }
+        @bottom-center { content: "페이지 " counter(page) " / " counter(pages); font-size: 0.9em; color: #333; }
+    }
+
+    body { background: #fff; padding: 0; max-width: none; }
+    .screen-only, .fb-home-btn, .pagination-controls, .fb-controls, .img-lightbox, .answer-speak-btn {
+        display: none !important;
+    }
+    .puzzle-title { display: block !important; font-size: 1.3em; margin: 0 0 0.3cm; }
+    .fb-card { border: 1px solid #ddd !important; box-shadow: none !important; page-break-inside: avoid; }
+}

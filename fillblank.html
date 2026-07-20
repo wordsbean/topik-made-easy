@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fill in the Blank — TOPIK Made Easy</title>
+<link rel="icon" href="images/icons/icon-192.png">
+<link rel="stylesheet" href="css/nav-hangul.css">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Song+Myung&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/fillblank.css">
+</head>
+<body>
+
+<header class="screen-only">
+  <h1>📝 <span data-i18n="fillblankTitle">다음에 들어갈 단어는</span>
+    <span class="puzzle-level" id="levelBadge">-</span>
+    <span class="puzzle-batch-number" id="batchBadge">-</span>
+  </h1>
+</header>
+
+<h2 class="puzzle-title" id="printTitle">Fill in the Blank</h2>
+
+<div class="fb-toolbar screen-only" id="fbToolbar"></div>
+
+<div class="fb-loading" id="fbLoading">데이터를 불러오는 중...</div>
+<div class="fb-grid" id="fbGrid"></div>
+
+<div id="answerGrid" class="answer-grid"></div>
+
+<div id="imgLightbox" class="img-lightbox">
+  <img id="lightboxImg" src="" alt="">
+</div>
+
+<div class="pagination-controls screen-only" id="pagCtrl" style="display:none;">
+  <select id="gradeSelect" class="fb-grade-select">
+    <option value="1">1급</option>
+    <option value="2">2급</option>
+    <option value="3">3급</option>
+    <option value="4">4급</option>
+    <option value="5">5급</option>
+    <option value="6">6급</option>
+  </select>
+  <button id="newPuzzleBtn" class="nav-button" data-i18n="newPuzzle">새 퍼즐 만들기</button>
+  <button id="toggleAnswerBtn" class="nav-button" data-i18n="showAnswer">정답 보기</button>
+  <button id="printBtn" class="nav-button" data-i18n="print">인쇄</button>
+</div>
+
+<script src="js/lang-pref-hangul.js"></script>
+<script src="js/ui-i18n-hangul.js"></script>
+<script src="js/speak.js"></script>
+<script src="js/romanize.js"></script>
+<script src="js/roman-toggle.js"></script>
+<script src="js/translate-helper.js"></script>
+<script>
+(function () {
+
+  // =========================================================
+  // 0) TOPIK 데이터 로딩 (wordcross.html과 동일한 방식 + nvsentences 예문)
+  // =========================================================
+  function loadScript(src) {
+    return new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = src;
+      s.onload = resolve;
+      s.onerror = () => reject(new Error('스크립트 로드 실패: ' + src));
+      document.head.appendChild(s);
+    });
+  }
+
+  async function loadTopikData(langCode) {
+    const scripts = ['data/topik_core.js', 'data/nvsentences.js'];
+    if (langCode !== 'en') scripts.push('data/topik_lang_' + langCode + '.js');
+    await Promise.all(scripts.map(loadScript));
+    const langData = langCode !== 'en' ? window['TOPIK_LANG_' + langCode.toUpperCase()] : null;
+    return TOPIK_CORE.map(w => ({
+      ...w,
+      nativeWord: langData && langData[w.id] ? langData[w.id].word : null,
+      nativeMeaning: langData && langData[w.id] ? langData[w.id].meaning : (w.engMeaning || ''),
+      nv: (typeof NV_SENTENCES !== 'undefined' && NV_SENTENCES[w.id]) ? NV_SENTENCES[w.id] : null,
+    }));
+  }
+
+  function isDismissed(id) {
+    return JSON.parse(localStorage.getItem('topik_dismissed') || '[]').includes(id);
+  }
+
+  // =========================================================
+  // 1) 설정
+  // =========================================================
+  const ITEMS_PER_PAGE = 8;
+  const CHOICE_LETTERS = ['A', 'B', 'C', 'D'];
+
+  const fbGrid = document.getElementById('fbGrid');
+  const fbLoading = document.getElementById('fbLoading');
+  const levelBadge = document.getElementById('levelBadge');
+  const batchBadge = document.getElementById('batchBadge');
+  const printTitle = document.getElementById('printTitle');
+  const toggleAnswerBtn = document.getElementById('toggleAnswerBtn');
+  const answerGridEl = document.getElementById('answerGrid');
+  const lightbox = document.getElementById('imgLightbox');
+  const lightboxImg = document.getElementById('lightboxImg');
+  const gradeSelect = document.getElementById('gradeSelect');
+
+  let WORDS = [];
+  let puzzleCount = 0;
+  let currentGrade = (typeof getSavedGrade === 'function') ? String(getSavedGrade()) : '1';
+  let currentItems = []; // { id, word, roman, engWord, engMeaning, nativeWord, image, grade, korSentence, engSentence, blankedSentence, choices:[{text,isCorrect}] }
+
+  // =========================================================
+  // 2) 후보 풀: 한글예문 안에 그 단어가 실제로 들어있는 카드만
+  //    (nvsentences의 검증된 예문을 우선 쓰고, 없으면 topik_core의 examplesKor로 대체)
+  // =========================================================
+  const MIN_CONTEXT_LEN = 4; // 단어 앞뒤로 이 정도는 다른 글자가 있어야 "예문"으로 인정
+
+  function findExample(w) {
+    const candidates = [];
+    if (w.nv && Array.isArray(w.nv.pos)) {
+      w.nv.pos.forEach(p => { if (p.kor && p.kor.includes(w.word)) candidates.push({ kor: p.kor, eng: p.eng || '' }); });
+    }
+    if (Array.isArray(w.examplesKor)) {
+      w.examplesKor.forEach(k => { if (k && k.includes(w.word)) candidates.push({ kor: k, eng: '' }); });
+    }
+    if (!candidates.length) return null;
+    // 영어예문이 있고, 단어 주변 문맥이 충분히 긴 예문을 우선 (짧은 사전 파편 예문 회피)
+    const scored = candidates.map(c => ({ ...c, score: (c.eng ? 1000 : 0) + Math.min(c.kor.length - w.word.length, 60) }));
+    const good = scored.filter(c => c.kor.length - w.word.length >= MIN_CONTEXT_LEN);
+    const pickFrom = good.length ? good : scored;
+    pickFrom.sort((a, b) => b.score - a.score);
+    return pickFrom[0];
+  }
+
+  function buildFillBlankPool() {
+    const seen = new Set();
+    const pool = [];
+    for (const w of WORDS) {
+      if (String(w.grade || '').charAt(0) !== currentGrade) continue;
+      if (isDismissed(w.id)) continue;
+      const word = (w.word || '').trim();
+      if (!word || seen.has(word)) continue;
+      const example = findExample(w);
+      if (!example) continue; // 예문 안에서 단어를 못 찾으면 빈칸 처리 불가 → 제외
+      seen.add(word);
+      pool.push({ ...w, korSentence: example.kor, engSentence: example.eng });
+    }
+    return pool;
+  }
+
+  function shuffleArray(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function pickRandomIndices(poolLen, count) {
+    const idxs = shuffleArray([...Array(poolLen).keys()]);
+    return idxs.slice(0, count).sort((a, b) => a - b);
+  }
+
+  // 문장에서 단어 부분만 빈칸(밑줄)으로 치환 (조사 등 앞뒤 글자는 그대로 둠).
+  // 로마자도 "같은 분할 지점"으로 앞/뒤를 각각 romanizeSentence()해서 빈칸과 어긋나지 않게 함.
+  function blankOutSentence(sentence, word) {
+    const idx = sentence.indexOf(word);
+    if (idx === -1) {
+      return { korHtml: sentence, romanHtml: (typeof romanizeSentence === 'function') ? romanizeSentence(sentence) : '' };
+    }
+    const prefixKor = sentence.slice(0, idx);
+    const suffixKor = sentence.slice(idx + word.length);
+    const korHtml = prefixKor + '<span class="fb-blank fb-blank--kor">&nbsp;</span>' + suffixKor;
+
+    let romanHtml = '';
+    if (typeof romanizeSentence === 'function') {
+      const romanPrefix = romanizeSentence(prefixKor);
+      const romanSuffix = romanizeSentence(suffixKor);
+      romanHtml = romanPrefix + '<span class="fb-blank fb-blank--roman">&nbsp;</span>' + romanSuffix;
+    }
+    return { korHtml, romanHtml };
+  }
+
+  // 정답 기준 "단어장 순서"로 앞2+뒤2 오답 뽑기 (경계에 걸리면 반대쪽에서 보충)
+  function pickNeighborDistractors(pool, targetIdx, count) {
+    const before = [];
+    const after = [];
+    for (let i = targetIdx - 1; i >= 0 && before.length < 2; i--) before.push(pool[i].word);
+    for (let i = targetIdx + 1; i < pool.length && after.length < 2; i++) after.push(pool[i].word);
+    let combined = [...before, ...after];
+    // 경계라 4개가 안 채워지면 남는 쪽에서 더 끌어옴
+    let extraBefore = targetIdx - 1 - before.length;
+    while (combined.length < count && extraBefore >= 0) { combined.push(pool[extraBefore].word); extraBefore--; }
+    let extraAfter = targetIdx + 1 + after.length;
+    while (combined.length < count && extraAfter < pool.length) { combined.push(pool[extraAfter].word); extraAfter++; }
+    return combined.slice(0, count);
+  }
+
+  // =========================================================
+  // 3) 렌더링
+  // =========================================================
+  function renderPuzzle() {
+    const pool = buildFillBlankPool();
+    if (!pool.length) {
+      fbGrid.innerHTML = '<div class="fb-loading">이 급수에는 예문에서 단어를 찾을 수 있는 카드가 아직 없어요.</div>';
+      answerGridEl.innerHTML = '';
+      return;
+    }
+    const count = Math.min(ITEMS_PER_PAGE, pool.length);
+    const indices = pickRandomIndices(pool.length, count);
+
+    currentItems = indices.map(idx => {
+      const item = pool[idx];
+      const distractors = pickNeighborDistractors(pool, idx, 3);
+      const choiceWords = shuffleArray([item.word, ...distractors]);
+      const choices = choiceWords.map(w => ({ text: w, isCorrect: w === item.word }));
+      const { korHtml, romanHtml } = blankOutSentence(item.korSentence, item.word);
+      return { ...item, blankedSentence: korHtml, blankedRoman: romanHtml, choices };
+    });
+
+    puzzleCount++;
+    levelBadge.textContent = (typeof tGradeBadge === 'function') ? tGradeBadge(currentGrade) : currentGrade + '급';
+    batchBadge.textContent = (typeof tBatchBadge === 'function') ? tBatchBadge(puzzleCount) : `제 ${puzzleCount}회`;
+    printTitle.textContent = `📝 ${typeof t === 'function' ? t('fillblankTitle') : '다음에 들어갈 단어는'} · ${tGradeBadge(currentGrade)} ${tBatchBadge(puzzleCount)}`;
+
+    fbGrid.innerHTML = currentItems.map((item, idx) => {
+      const thumb = item.image ? `<img class="fb-thumb" src="images/${item.image}" alt="${item.word}" data-word="${item.word}" onerror="this.remove()">` : '';
+      const choicesHtml = item.choices.map((c, ci) => `
+        <button type="button" class="fb-choice-btn" data-item="${idx}" data-word="${c.text}" data-correct="${c.isCorrect}">
+          <span class="fb-choice-letter">${CHOICE_LETTERS[ci]}.</span>
+          <span>${c.text}</span>
+        </button>
+      `).join('');
+
+      return `
+        <div class="fb-card" data-item="${idx}">
+          <div class="fb-card-top">
+            ${thumb}
+            <div>
+              <span class="fb-item-number">${idx + 1}.</span>
+              <span class="fb-hint">${item.engWord || ''}<span class="native">${item.nativeWord ? '· ' + item.nativeWord : ''}</span></span>
+            </div>
+            <div class="fb-controls">
+              <button type="button" class="fb-speak-btn" data-word="${item.word}" title="단어 발음">🔊</button>
+            </div>
+          </div>
+          <p class="fb-sentence fb-sentence--playable" data-sentence="${item.korSentence.replace(/"/g, '&quot;')}" title="탭하면 예문을 읽어주고, 모국어 번역도 볼 수 있어요">${item.blankedSentence}</p>
+          ${item.blankedRoman ? `<p class="fb-roman">${item.blankedRoman}</p>` : ''}
+          ${item.engSentence ? `<p class="fb-eng-sentence">${item.engSentence}</p>` : ''}
+          <p class="fb-native-sentence" data-idx="${idx}" style="display:none;"></p>
+          <div class="fb-choices">${choicesHtml}</div>
+          <div class="fb-item-status" id="fbStatus${idx}"></div>
+        </div>
+      `;
+    }).join('');
+
+    renderAnswerGrid(currentItems);
+    bindInteractions();
+  }
+
+  // =========================================================
+  // 4) 상호작용
+  // =========================================================
+  function bindInteractions() {
+    fbGrid.querySelectorAll('.fb-choice-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const itemIdx = Number(btn.dataset.item);
+        const isCorrect = btn.dataset.correct === 'true';
+        const item = currentItems[itemIdx];
+
+        if (isCorrect) {
+          btn.classList.add('is-correct');
+          fbGrid.querySelectorAll(`.fb-choice-btn[data-item="${itemIdx}"]`).forEach(b => b.disabled = true);
+          document.getElementById(`fbStatus${itemIdx}`).textContent = '✓ 정답!';
+          const card = fbGrid.querySelector(`.fb-card[data-item="${itemIdx}"]`);
+          const blankKor = card && card.querySelector('.fb-blank--kor');
+          const blankRoman = card && card.querySelector('.fb-blank--roman');
+          if (blankKor) blankKor.textContent = item.word;
+          if (blankRoman && typeof romanizeWord === 'function') blankRoman.textContent = romanizeWord(item.word);
+          speakKorean(item.word);
+        } else {
+          btn.classList.remove('is-wrong');
+          void btn.offsetWidth;
+          btn.classList.add('is-wrong');
+          setTimeout(() => {
+            btn.classList.remove('is-wrong');
+            btn.disabled = true;
+          }, 300);
+        }
+      });
+    });
+
+    fbGrid.querySelectorAll('.fb-speak-btn').forEach(btn => {
+      btn.addEventListener('click', () => speakKorean(btn.dataset.word));
+    });
+
+    fbGrid.querySelectorAll('.fb-sentence--playable').forEach(el => {
+      el.addEventListener('click', () => {
+        speakKorean(el.dataset.sentence);
+        const nativeEl = el.closest('.fb-card').querySelector('.fb-native-sentence');
+        if (typeof toggleTranslationInto === 'function') toggleTranslationInto(nativeEl, el.dataset.sentence);
+      });
+    });
+
+    fbGrid.querySelectorAll('.fb-thumb[data-word]').forEach(img => {
+      img.addEventListener('click', () => {
+        lightboxImg.src = img.src;
+        lightboxImg.alt = img.alt;
+        lightbox.classList.add('is-open');
+        speakKorean(img.dataset.word);
+      });
+    });
+  }
+
+  // =========================================================
+  // 5) 정답 요약 표
+  // =========================================================
+  function renderAnswerGrid(items) {
+    const rows = items.map(w => {
+      const thumbImg = w.image ? `<img src="images/${w.image}" alt="${w.word}" onerror="this.remove()">` : '';
+      return `
+        <tr>
+          <td class="cell-thumb">${thumbImg}</td>
+          <td class="cell-word">${w.word}<div class="cell-pronun">${w.roman || ''}</div></td>
+          <td>${w.engWord || ''}</td>
+          <td>${w.engMeaning || ''}</td>
+          <td>${w.nativeWord || w.nativeMeaning || ''}</td>
+        </tr>
+      `;
+    }).join('');
+
+    answerGridEl.innerHTML = `
+      <div class="answer-grid-header">
+        <h3>${typeof t === 'function' ? t('answerSummary') : '정답 요약'}</h3>
+        <span><button type="button" class="answer-speak-btn" id="answerSpeakBtn" title="전체듣기">🔊</button></span>
+      </div>
+      <table>
+        <thead><tr><th class="cell-thumb"></th><th>${typeof t === 'function' ? t('colWord') : '단어'}</th><th>${typeof t === 'function' ? t('colEnglish') : '영어'}</th><th>${typeof t === 'function' ? t('colEnglishMeaning') : '영어뜻'}</th><th>${typeof t === 'function' ? t('colNative') : '모국어'}</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    `;
+
+    document.getElementById('answerSpeakBtn').onclick = () => {
+      toggleSpeakKoreanSequence(items.map(w => w.word));
+    };
+  }
+
+  // =========================================================
+  // 6) 초기화
+  // =========================================================
+  document.addEventListener('DOMContentLoaded', async () => {
+    const newPuzzleBtn = document.getElementById('newPuzzleBtn');
+    const lang = (typeof getSavedUserLang === 'function') ? getSavedUserLang() : 'en';
+    if (typeof initRomanToggle === 'function') initRomanToggle(document.getElementById('fbToolbar'), typeof t === 'function' ? t('romanToggle') : undefined);
+
+    try {
+      WORDS = await loadTopikData(lang);
+    } catch (e) {
+      fbLoading.textContent = '데이터를 불러오지 못했어요: ' + e.message;
+      return;
+    }
+    fbLoading.style.display = 'none';
+    document.getElementById('pagCtrl').style.display = 'flex';
+
+    newPuzzleBtn.disabled = true;
+    newPuzzleBtn.textContent = '단어 불러오는 중...';
+
+    function renderPuzzleWithLoading() {
+      newPuzzleBtn.disabled = true;
+      newPuzzleBtn.textContent = typeof t === 'function' ? t('generating') : '만드는 중...';
+      setTimeout(() => {
+        renderPuzzle();
+        newPuzzleBtn.disabled = false;
+        newPuzzleBtn.textContent = typeof t === 'function' ? t('newPuzzle') : '새 퍼즐 만들기';
+      }, 30);
+    }
+
+    gradeSelect.value = currentGrade;
+    renderPuzzleWithLoading();
+    newPuzzleBtn.addEventListener('click', renderPuzzleWithLoading);
+
+    gradeSelect.addEventListener('change', () => {
+      currentGrade = gradeSelect.value;
+      if (typeof saveGrade === 'function') saveGrade(Number(currentGrade));
+      document.body.classList.remove('mode-answer');
+      toggleAnswerBtn.textContent = typeof t === 'function' ? t('showAnswer') : '정답 보기';
+      renderPuzzleWithLoading();
+    });
+
+    toggleAnswerBtn.addEventListener('click', () => {
+      document.body.classList.toggle('mode-answer');
+      const isAnswer = document.body.classList.contains('mode-answer');
+      toggleAnswerBtn.textContent = typeof t === 'function' ? (isAnswer ? t('showProblem') : t('showAnswer')) : (isAnswer ? '문제 보기' : '정답 보기');
+      if (isAnswer) {
+        fbGrid.querySelectorAll('.fb-choice-btn').forEach(btn => {
+          if (btn.dataset.correct === 'true') btn.classList.add('is-answer');
+        });
+        currentItems.forEach((item, idx) => {
+          const card = fbGrid.querySelector(`.fb-card[data-item="${idx}"]`);
+          const blankKor = card && card.querySelector('.fb-blank--kor');
+          const blankRoman = card && card.querySelector('.fb-blank--roman');
+          if (blankKor) blankKor.textContent = item.word;
+          if (blankRoman && typeof romanizeWord === 'function') blankRoman.textContent = romanizeWord(item.word);
+        });
+      } else {
+        fbGrid.querySelectorAll('.fb-blank--kor').forEach(blank => { blank.innerHTML = '&nbsp;'; });
+        fbGrid.querySelectorAll('.fb-blank--roman').forEach(blank => { blank.innerHTML = '&nbsp;'; });
+      }
+    });
+
+    document.getElementById('printBtn').addEventListener('click', () => {
+      const num = String(puzzleCount).padStart(3, '0');
+      const isAnswer = document.body.classList.contains('mode-answer');
+      const suffix = isAnswer ? '정답' : '문제';
+      const originalTitle = document.title;
+      document.title = `fb${currentGrade}_${num}_${suffix}`;
+      window.print();
+      document.title = originalTitle;
+    });
+
+    lightbox.addEventListener('click', () => lightbox.classList.remove('is-open'));
+  });
+})();
+</script>
+<script src="js/nav-hangul.js"></script>
+</body>
+</html>

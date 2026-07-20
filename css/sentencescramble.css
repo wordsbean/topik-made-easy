@@ -1,0 +1,338 @@
+:root {
+    --ss-primary: #1e40af;
+    --ss-primary-light: #eff6ff;
+    --ss-header: #1e293b;
+    --ss-header2: #334155;
+    --ss-ink: #0f172a;
+    --ss-muted: #64748b;
+    --ss-border: #e2e8f0;
+    --ss-card: #ffffff;
+    --ss-teal: #0d9488;
+    --ss-blue: #2563eb;
+    --ss-red: #dc2626;
+    --ss-green: #1e8e4f;
+    --ss-orange: #ea580c;
+    --ss-wine: #7b2d3f;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: #f8fafc;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px 16px 110px;
+    color: var(--ss-ink);
+}
+
+.ss-home-btn {
+    position: absolute; top: 14px; right: 16px;
+    background: rgba(255,255,255,0.15); border-radius: 8px;
+    width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;
+    text-decoration: none; font-size: 16px;
+}
+
+header.screen-only {
+    position: relative;
+    background: linear-gradient(135deg, var(--ss-header), var(--ss-header2));
+    border-radius: 16px;
+    padding: 16px 22px;
+    margin-bottom: 18px;
+}
+
+header.screen-only h1 {
+    margin: 0;
+    font-size: 19px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.puzzle-level {
+    background: var(--ss-teal);
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+}
+
+.puzzle-batch-number {
+    background: var(--ss-orange);
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+}
+
+.puzzle-title { display: none; }
+
+.ss-loading {
+    text-align: center;
+    color: var(--ss-muted);
+    font-size: 13px;
+    padding: 40px 0;
+}
+
+/* ---------- 카드 ---------- */
+.ss-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 18px;
+}
+
+.ss-card {
+    background: var(--ss-card);
+    border: 1px solid var(--ss-border);
+    border-radius: 16px;
+    box-shadow: 0 4px 16px rgba(15,23,42,0.06);
+    padding: 20px;
+}
+
+.ss-card-top {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.ss-thumb {
+    width: 52px;
+    height: 52px;
+    border-radius: 10px;
+    object-fit: cover;
+    background: var(--ss-primary-light);
+    flex: 0 0 auto;
+    cursor: zoom-in;
+}
+
+.ss-item-number {
+    font-weight: 800;
+    color: var(--ss-blue);
+    margin-right: 4px;
+}
+
+.ss-hint {
+    font-size: 12px;
+    color: var(--ss-muted);
+}
+
+.ss-hint .native {
+    color: var(--ss-teal);
+    margin-left: 4px;
+}
+
+.ss-controls {
+    margin-left: auto;
+    display: flex;
+    gap: 4px;
+}
+
+.ss-speak-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: none;
+    background: var(--ss-primary-light);
+    color: var(--ss-primary);
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.ss-speak-btn:hover { background: #dbeafe; }
+
+/* ---------- 힌트 줄(로마자 + 영어해석, 섞이지 않음) ---------- */
+.ss-roman-hint {
+    font-size: 12px;
+    color: var(--ss-teal);
+    margin-bottom: 2px;
+}
+
+body.roman-hidden .ss-roman-hint { display: none !important; }
+
+.ss-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 12px;
+}
+
+.ss-eng-hint {
+    font-size: 12px;
+    color: var(--ss-muted);
+    font-style: italic;
+    margin-bottom: 4px;
+}
+
+.ss-native-hint {
+    font-size: 12px;
+    color: var(--ss-wine);
+    margin-bottom: 12px;
+}
+
+/* ---------- 정답 슬롯 ---------- */
+.ss-slot-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-height: 44px;
+    padding: 10px;
+    background: #f8fafc;
+    border: 1px solid var(--ss-border);
+    border-radius: 12px;
+    margin-bottom: 14px;
+    align-items: center;
+}
+
+.ss-slot {
+    min-width: 50px;
+    height: 34px;
+    border-bottom: 3px solid #cbd5e1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 8px;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--ss-ink);
+}
+
+.ss-slot.is-next { border-bottom-color: var(--ss-blue); }
+
+.ss-slot.is-filled {
+    background: #e9f9f0;
+    border-bottom-color: var(--ss-green);
+    color: var(--ss-green);
+    border-radius: 6px 6px 0 0;
+    animation: ssDropIn 0.22s ease;
+}
+
+@keyframes ssDropIn {
+    0% { transform: translateY(-14px); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
+}
+
+/* ---------- 흩어진 단어 뱅크 ---------- */
+.ss-word-bank {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 14px 10px 4px;
+    justify-content: center;
+}
+
+.ss-word-block {
+    background: var(--ss-primary-light);
+    color: var(--ss-blue);
+    font-weight: 700;
+    font-size: 15px;
+    padding: 8px 14px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 3px 8px rgba(15,23,42,0.10);
+    transition: transform 0.15s ease, background 0.15s ease;
+    user-select: none;
+}
+
+.ss-word-block:hover { background: #dbeafe; }
+
+.ss-word-block.is-placed { display: none; }
+
+.ss-word-block.is-wrong {
+    animation: ssBounceReject 0.35s ease;
+    background: #fdebea;
+    color: var(--ss-red);
+}
+
+@keyframes ssBounceReject {
+    0% { transform: translateY(0) rotate(var(--tilt, 0deg)); }
+    30% { transform: translateY(-10px) rotate(var(--tilt, 0deg)); }
+    55% { transform: translateY(4px) rotate(var(--tilt, 0deg)); }
+    100% { transform: translateY(0) rotate(var(--tilt, 0deg)); }
+}
+
+.ss-item-status {
+    text-align: center;
+    font-size: 12px;
+    color: var(--ss-green);
+    font-weight: 700;
+    margin-top: 6px;
+    height: 16px;
+}
+
+body.mode-answer .ss-word-bank { display: none; }
+
+body.mode-answer .ss-slot {
+    background: #e9f9f0;
+    border-bottom-color: var(--ss-green);
+    color: var(--ss-green);
+    border-radius: 6px 6px 0 0;
+}
+
+/* ---------- 정답 요약 표 ---------- */
+.answer-grid { display: none; margin-top: 20px; background: var(--ss-card); border-radius: 16px; box-shadow: 0 4px 16px rgba(15,23,42,0.06); overflow: hidden; }
+body.mode-answer .answer-grid { display: block; }
+.answer-grid table { width: 100%; border-collapse: collapse; }
+.answer-grid-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px 0; }
+.answer-grid-header h3 { font-size: 15px; margin: 0; }
+.answer-grid th { background: var(--ss-header); color: #fff; font-size: 13px; padding: 10px 12px; text-align: left; }
+.answer-grid td { padding: 10px 12px; font-size: 13px; border-bottom: 1px solid #eef1f6; vertical-align: middle; }
+.answer-grid .cell-word { font-weight: 700; }
+.cell-pronun { font-size: 11px; color: var(--ss-teal); margin-top: 2px; }
+.answer-grid .cell-thumb img { width: 36px; height: 36px; border-radius: 6px; object-fit: cover; display: block; }
+.answer-speak-btn { width: 28px; height: 28px; border-radius: 50%; border: none; background: var(--ss-primary-light); color: var(--ss-primary); font-size: 13px; cursor: pointer; }
+
+/* ---------- 라이트박스 ---------- */
+.img-lightbox {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 20, 33, 0.82);
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    cursor: zoom-out;
+}
+.img-lightbox.is-open { display: flex; }
+.img-lightbox img {
+    max-width: min(90vw, 480px);
+    max-height: 80vh;
+    border-radius: 10px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+}
+
+/* ---------- 하단 컨트롤 ---------- */
+.pagination-controls {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;
+    padding: 12px; background: #fff; border-top: 1px solid var(--ss-border);
+    z-index: 20;
+}
+.ss-grade-select {
+    border: 1px solid var(--ss-border); border-radius: 10px; padding: 8px 12px; font-size: 13px;
+}
+.nav-button {
+    border: none; border-radius: 10px; padding: 9px 16px; font-size: 13px; font-weight: 600;
+    background: var(--ss-primary-light); color: var(--ss-primary); cursor: pointer;
+}
+.nav-button:hover { background: #dbeafe; }
+
+/* ---------- 인쇄 ---------- */
+@media print {
+    @page {
+        size: A4;
+        margin: 0.5cm;
+        @top-right { content: "TOPIK Made Easy — Lingo Power"; font-size: 0.8em; color: #555; }
+        @bottom-left { content: "Written by wordsbean"; font-size: 0.7em; color: #666; }
+        @bottom-center { content: "페이지 " counter(page) " / " counter(pages); font-size: 0.9em; color: #333; }
+    }
+
+    body { background: #fff; padding: 0; max-width: none; }
+    .screen-only, .ss-home-btn, .pagination-controls, .ss-controls, .img-lightbox, .answer-speak-btn, .ss-word-bank {
+        display: none !important;
+    }
+    .puzzle-title { display: block !important; font-size: 1.3em; margin: 0 0 0.3cm; }
+    .ss-card { border: 1px solid #ddd !important; box-shadow: none !important; page-break-inside: avoid; }
+    .ss-slot { color: transparent !important; border-bottom-color: #999 !important; }
+    body.mode-answer .ss-slot { color: var(--ss-red) !important; border-bottom-color: var(--ss-red) !important; }
+}

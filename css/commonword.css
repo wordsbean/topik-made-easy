@@ -1,0 +1,336 @@
+:root {
+    --cw-primary: #1e40af;
+    --cw-primary-light: #eff6ff;
+    --cw-header: #1e293b;
+    --cw-header2: #334155;
+    --cw-ink: #0f172a;
+    --cw-muted: #64748b;
+    --cw-border: #e2e8f0;
+    --cw-card: #ffffff;
+    --cw-teal: #0d9488;
+    --cw-blue: #2563eb;
+    --cw-red: #dc2626;
+    --cw-green: #1e8e4f;
+    --cw-orange: #ea580c;
+    --cw-wine: #7b2d3f;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: #f8fafc;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px 16px 110px;
+    color: var(--cw-ink);
+}
+
+.cw-home-btn {
+    position: absolute; top: 14px; right: 16px;
+    background: rgba(255,255,255,0.15); border-radius: 8px;
+    width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;
+    text-decoration: none; font-size: 16px;
+}
+
+header.screen-only {
+    position: relative;
+    background: linear-gradient(135deg, var(--cw-header), var(--cw-header2));
+    border-radius: 16px;
+    padding: 16px 22px;
+    margin-bottom: 18px;
+}
+
+header.screen-only h1 {
+    margin: 0;
+    font-size: 19px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.puzzle-level {
+    background: var(--cw-teal);
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+}
+
+.puzzle-batch-number {
+    background: var(--cw-orange);
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+}
+
+.puzzle-title { display: none; }
+
+.cw-loading {
+    text-align: center;
+    color: var(--cw-muted);
+    font-size: 13px;
+    padding: 40px 0;
+}
+
+/* ---------- 카드 ---------- */
+.cw-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+}
+
+.cw-card {
+    background: var(--cw-card);
+    border: 1px solid var(--cw-border);
+    border-radius: 16px;
+    box-shadow: 0 4px 16px rgba(15,23,42,0.06);
+    padding: 18px 20px;
+}
+
+.cw-card-top {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.cw-item-number {
+    font-weight: 800;
+    color: var(--cw-blue);
+    margin-right: 4px;
+}
+
+.cw-hint {
+    font-size: 12px;
+    color: var(--cw-muted);
+}
+
+.cw-hint .native {
+    color: var(--cw-teal);
+    margin-left: 4px;
+}
+
+.cw-controls {
+    margin-left: auto;
+    display: flex;
+    gap: 4px;
+}
+
+.cw-speak-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: none;
+    background: var(--cw-primary-light);
+    color: var(--cw-primary);
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.cw-speak-btn:hover { background: #dbeafe; }
+
+/* ---------- 예문 목록 ---------- */
+.cw-sentences {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 10px 0 14px;
+    padding: 12px 14px;
+    background: #f8fafc;
+    border-radius: 12px;
+    border: 1px solid var(--cw-border);
+}
+
+.cw-sentence-row {
+    font-size: 14px;
+    color: var(--cw-ink);
+    line-height: 1.6;
+    padding: 4px 0;
+    border-bottom: 1px dashed var(--cw-border);
+}
+
+.cw-sentence-row:last-child {
+    border-bottom: none;
+}
+
+.cw-sentence-line {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.cw-sentence-listen-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    flex: 0 0 auto;
+    border: none;
+    background: var(--cw-primary-light);
+    color: var(--cw-primary);
+    font-size: 11px;
+    border-radius: 50%;
+    cursor: pointer;
+    vertical-align: middle;
+    transform: translateY(2px);
+}
+
+.cw-sentence-listen-icon:hover {
+    background: var(--cw-primary);
+    color: #fff;
+}
+
+.cw-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 12px;
+}
+
+.cw-sentence-row .cw-sentence-text,
+.cw-sentence-row .cw-roman-line,
+.cw-sentence-row .cw-eng-line,
+.cw-sentence-row .cw-native-line {
+    display: block;
+}
+
+.cw-sentence-row .cw-roman-line {
+    font-size: 11px;
+    color: var(--cw-teal);
+    margin-top: 1px;
+}
+
+body.roman-hidden .cw-roman-line { display: none !important; }
+
+.cw-sentence-row .cw-eng-line {
+    font-size: 11px;
+    color: var(--cw-muted);
+    font-style: italic;
+    margin-top: 1px;
+}
+
+.cw-sentence-row .cw-native-line {
+    display: block;
+    font-size: 11px;
+    color: var(--cw-wine);
+    margin-top: 1px;
+}
+
+.cw-blank {
+    display: inline-block;
+    min-width: 44px;
+    border-bottom: 2px solid var(--cw-blue);
+    text-align: center;
+    color: var(--cw-blue);
+    font-weight: 800;
+}
+
+/* ---------- 4지선다 ---------- */
+.cw-choices {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+}
+
+@media (max-width: 480px) {
+    .cw-choices { grid-template-columns: 1fr; }
+}
+
+.cw-choice-btn {
+    background: var(--cw-primary-light);
+    border: none;
+    color: var(--cw-ink);
+    font-weight: 700;
+    font-size: 15px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.cw-choice-btn:hover:not(:disabled) { background: #dbeafe; }
+
+.cw-choice-letter { font-weight: 800; color: var(--cw-blue); flex: 0 0 auto; }
+
+.cw-choice-btn.is-correct { background: #e9f9f0; color: var(--cw-green); }
+.cw-choice-btn.is-correct .cw-choice-letter { color: var(--cw-green); }
+
+.cw-choice-btn.is-wrong {
+    background: #fdebea;
+    color: var(--cw-red);
+    animation: cwShake 0.3s ease;
+}
+
+@keyframes cwShake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
+}
+
+.cw-choice-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.cw-item-status {
+    text-align: center;
+    font-size: 12px;
+    color: var(--cw-green);
+    font-weight: 700;
+    margin-top: 8px;
+    height: 16px;
+}
+
+body.mode-answer .cw-choice-btn { pointer-events: none; }
+body.mode-answer .cw-choice-btn.is-answer { background: #e9f9f0; color: var(--cw-green); }
+body.mode-answer .cw-blank { color: var(--cw-red); }
+
+/* ---------- 정답 요약 표 ---------- */
+.answer-grid { display: none; margin-top: 20px; background: var(--cw-card); border-radius: 16px; box-shadow: 0 4px 16px rgba(15,23,42,0.06); overflow: hidden; }
+body.mode-answer .answer-grid { display: block; }
+.answer-grid table { width: 100%; border-collapse: collapse; }
+.answer-grid-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px 0; }
+.answer-grid-header h3 { font-size: 15px; margin: 0; }
+.answer-grid th { background: var(--cw-header); color: #fff; font-size: 13px; padding: 10px 12px; text-align: left; }
+.answer-grid td { padding: 10px 12px; font-size: 13px; border-bottom: 1px solid #eef1f6; vertical-align: middle; }
+.answer-grid .cell-word { font-weight: 700; }
+.cell-pronun { font-size: 11px; color: var(--cw-teal); margin-top: 2px; }
+.answer-grid .cell-thumb img { width: 36px; height: 36px; border-radius: 6px; object-fit: cover; display: block; }
+.answer-speak-btn { width: 28px; height: 28px; border-radius: 50%; border: none; background: var(--cw-primary-light); color: var(--cw-primary); font-size: 13px; cursor: pointer; }
+
+/* ---------- 하단 컨트롤 ---------- */
+.pagination-controls {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;
+    padding: 12px; background: #fff; border-top: 1px solid var(--cw-border);
+    z-index: 20;
+}
+.cw-grade-select {
+    border: 1px solid var(--cw-border); border-radius: 10px; padding: 8px 12px; font-size: 13px;
+}
+.nav-button {
+    border: none; border-radius: 10px; padding: 9px 16px; font-size: 13px; font-weight: 600;
+    background: var(--cw-primary-light); color: var(--cw-primary); cursor: pointer;
+}
+.nav-button:hover { background: #dbeafe; }
+
+/* ---------- 인쇄 ---------- */
+@media print {
+    @page {
+        size: A4;
+        margin: 0.5cm;
+        @top-right { content: "TOPIK Made Easy — Lingo Power"; font-size: 0.8em; color: #555; }
+        @bottom-left { content: "Written by wordsbean"; font-size: 0.7em; color: #666; }
+        @bottom-center { content: "페이지 " counter(page) " / " counter(pages); font-size: 0.9em; color: #333; }
+    }
+
+    body { background: #fff; padding: 0; max-width: none; }
+    .screen-only, .cw-home-btn, .pagination-controls, .cw-controls, .answer-speak-btn {
+        display: none !important;
+    }
+    .puzzle-title { display: block !important; font-size: 1.3em; margin: 0 0 0.3cm; }
+    .cw-card { border: 1px solid #ddd !important; box-shadow: none !important; page-break-inside: avoid; }
+}

@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>학습 이력 — Lingo Power</title>
+<meta name="description" content="TOPIK 단어 학습 이력, 즐겨찾기, 더 이상 안 보기 관리">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="images/icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Song+Myung&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/nav-hangul.css">
+<link rel="stylesheet" href="css/progress.css">
+</head>
+<body>
+
+<header class="app-header">
+  <p class="brand">Lingo Power</p>
+  <h1>📅 학습 이력</h1>
+  <p class="tagline">캘린더로 보는 내 TOPIK 단어 학습 기록</p>
+</header>
+
+<main class="pgh-main" id="pghMain">
+  <div class="pgh-loading" id="pghLoading">데이터를 불러오는 중...</div>
+</main>
+
+<template id="pghContentTemplate">
+  <!-- 요약 -->
+  <div class="pgh-card">
+    <div class="pgh-summary">
+      <div class="pgh-summary-item">
+        <div class="pgh-summary-num" id="totalWordsNum">0</div>
+        <div class="pgh-summary-label" data-i18n="progressTotalWords">누적 학습 단어</div>
+      </div>
+      <div class="pgh-summary-item">
+        <div class="pgh-summary-num" id="totalDaysNum">0</div>
+        <div class="pgh-summary-label" data-i18n="progressDaysLearned">학습한 날</div>
+      </div>
+      <div class="pgh-summary-item">
+        <div class="pgh-summary-num" id="todayNum">0</div>
+        <div class="pgh-summary-label" data-i18n="progressToday">오늘 학습</div>
+      </div>
+      <div class="pgh-summary-item pgh-summary-item--clickable" id="favCard">
+        <div class="pgh-summary-num" id="favNum">0</div>
+        <div class="pgh-summary-label">⭐ <span data-i18n="progressFavorites">즐겨찾기</span></div>
+      </div>
+      <div class="pgh-summary-item pgh-summary-item--clickable" id="dismissedCard">
+        <div class="pgh-summary-num" id="dismissedNum">0</div>
+        <div class="pgh-summary-label">🚫 <span data-i18n="progressDismissed">더 이상 안 보기</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 달력 -->
+  <div class="pgh-card">
+    <div class="pgh-cal-header">
+      <button class="pgh-cal-nav-btn" id="prevMonthBtn">‹</button>
+      <div class="pgh-cal-title" id="calTitle">-</div>
+      <button class="pgh-cal-nav-btn" id="nextMonthBtn">›</button>
+    </div>
+    <div class="pgh-cal-grid" id="calWeekdays"></div>
+    <div class="pgh-cal-grid" id="calDays" style="margin-top:4px;"></div>
+    <div class="pgh-cal-legend">
+      <span class="pgh-legend-swatch"></span> 학습한 날 (숫자 = 단어 수)
+    </div>
+  </div>
+
+  <!-- 상세 목록 (날짜별 / 즐겨찾기 / 더 이상 안 보기 공용) -->
+  <div class="pgh-card pgh-detail" id="detailCard">
+    <div class="pgh-detail-header">
+      <div class="pgh-detail-title" id="detailTitle">-</div>
+      <span class="pgh-detail-header-controls">
+        <button type="button" class="pgh-icon-btn" id="detailSpeakAllBtn" title="전체 듣기">🔊</button>
+      </span>
+      <button type="button" class="pgh-btn pgh-danger" id="detailResetBtn" style="display:none;">🗑 이 목록 초기화</button>
+      <button type="button" class="pgh-btn" id="detailPrintBtn">🖨 인쇄 / PDF 출력</button>
+    </div>
+    <div class="pgh-grid-wrap">
+      <table class="pgh-grid">
+        <thead>
+          <tr>
+            <th class="pgh-cell-thumb"></th>
+            <th>단어</th>
+            <th>영어</th>
+            <th>영어뜻</th>
+            <th>모국어</th>
+            <th class="pgh-cell-actions"></th>
+          </tr>
+        </thead>
+        <tbody id="detailList"></tbody>
+      </table>
+    </div>
+    <div class="pgh-pagination" id="detailPagination"></div>
+  </div>
+
+  <!-- 관리 -->
+  <div class="pgh-card pgh-actions">
+    <button type="button" class="pgh-btn pgh-danger" id="resetLogBtn">🗑 학습 이력(캘린더) 초기화</button>
+    <button type="button" class="pgh-btn pgh-danger" id="resetFavBtn">🗑 즐겨찾기 초기화</button>
+    <button type="button" class="pgh-btn pgh-danger" id="resetDismissedBtn">🗑 더 이상 안 보기 목록 초기화</button>
+  </div>
+</template>
+
+<script src="js/lang-pref-hangul.js"></script>
+<script src="js/ui-i18n-hangul.js"></script>
+<script src="js/progress-topik.js"></script>
+<script src="js/speak.js"></script>
+<script src="js/translate-helper.js"></script>
+<script>
+(function () {
+
+  // =========================================================
+  // 0) TOPIK 데이터 로딩 (index.html / wordcross.html과 동일한 방식)
+  // =========================================================
+  function loadScript(src) {
+    return new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = src;
+      s.onload = resolve;
+      s.onerror = () => reject(new Error('스크립트 로드 실패: ' + src));
+      document.head.appendChild(s);
+    });
+  }
+
+  async function loadTopikData(langCode) {
+    const scripts = ['data/topik_core.js'];
+    const useStatic = (typeof isStaticLangSupported === 'function') ? isStaticLangSupported(langCode) : (langCode !== 'en');
+    if (useStatic) scripts.push('data/topik_lang_' + langCode + '.js');
+    await Promise.all(scripts.map(loadScript));
+    const langData = useStatic ? window['TOPIK_LANG_' + langCode.toUpperCase()] : null;
+    const byId = {};
+    TOPIK_CORE.forEach(w => {
+      byId[w.id] = {
+        ...w,
+        nativeWord: langData && langData[w.id] ? langData[w.id].word : null,
+        nativeMeaning: langData && langData[w.id] ? langData[w.id].meaning : (w.engMeaning || ''),
+      };
+    });
+    return byId;
+  }
+
+  // 10개국(정적 지원)이 아닌 "기타 언어"일 때만: 화면에 지금 나온 행들만 실시간 번역으로 채움
+  let currentLang = 'en';
+  async function fillExtraLangHints(ids) {
+    const useStatic = (typeof isStaticLangSupported === 'function') ? isStaticLangSupported(currentLang) : false;
+    if (useStatic || currentLang === 'en' || typeof getNativeWordMeaning !== 'function') return;
+    await Promise.all(ids.map(async (id) => {
+      const w = CARDS_BY_ID[id];
+      if (!w) return;
+      const result = await getNativeWordMeaning(id, w.word, w.engMeaning, currentLang, null);
+      if (!result.word) return;
+      w.nativeWord = result.word;
+      w.nativeMeaning = result.meaning;
+      const cell = detailList.querySelector(`tr[data-id="${id}"] .pgh-cell-native`);
+      if (cell) cell.textContent = result.word;
+    }));
+  }
+
+  function getFavorites() {
+    return JSON.parse(localStorage.getItem('topik_favorites') || '[]');
+  }
+  function getDismissed() {
+    return JSON.parse(localStorage.getItem('topik_dismissed') || '[]');
+  }
+  function toggleFavorite(id) {
+    let favs = getFavorites();
+    favs = favs.includes(id) ? favs.filter(x => x !== id) : [...favs, id];
+    localStorage.setItem('topik_favorites', JSON.stringify(favs));
+  }
+
+  const WEEKDAY_KEYS = ['weekdaySun', 'weekdayMon', 'weekdayTue', 'weekdayWed', 'weekdayThu', 'weekdayFri', 'weekdaySat'];
+  const WEEKDAYS_KO = ['일', '월', '화', '수', '목', '금', '토'];
+  const WEEKDAYS = WEEKDAY_KEYS.map((k, i) => (typeof t === 'function') ? t(k) : WEEKDAYS_KO[i]);
+
+  let CARDS_BY_ID = {};
+  let viewYear, viewMonth; // viewMonth: 0-based
+  let selectedDateKey = null;
+  let detailMode = 'day'; // 'day' | 'favorites' | 'dismissed'
+  let detailIds = [];
+  let detailKey = null;
+  let detailPage = 1;
+  const PAGE_SIZE = 20;
+
+  let calTitle, calWeekdaysEl, calDaysEl, detailCard, detailTitle, detailList, detailPagination;
+
+  function pad2(n) { return String(n).padStart(2, '0'); }
+  function dateKey(y, m, d) { return `${y}-${pad2(m + 1)}-${pad2(d)}`; }
+
+  function renderWeekdayHeader() {
+    calWeekdaysEl.innerHTML = WEEKDAYS.map(w => `<div class="pgh-cal-weekday">${w}</div>`).join('');
+  }
+
+  function renderSummary(log) {
+    const allWords = new Set();
+    Object.values(log).forEach(ids => ids.forEach(id => allWords.add(id)));
+    const totalDays = Object.keys(log).length;
+    const todayKey = getTodayKey();
+    const todayCount = (log[todayKey] || []).length;
+
+    document.getElementById('totalWordsNum').textContent = allWords.size;
+    document.getElementById('totalDaysNum').textContent = totalDays;
+    document.getElementById('todayNum').textContent = todayCount;
+    document.getElementById('favNum').textContent = getFavorites().length;
+    document.getElementById('dismissedNum').textContent = getDismissed().length;
+  }
+
+  function renderCalendar() {
+    const log = getStudyLog();
+    renderSummary(log);
+
+    calTitle.textContent = `${viewYear}년 ${viewMonth + 1}월`;
+
+    const firstDay = new Date(viewYear, viewMonth, 1).getDay();
+    const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+    const todayKey = getTodayKey();
+
+    let html = '';
+    for (let i = 0; i < firstDay; i++) {
+      html += `<div class="pgh-cal-day is-empty"></div>`;
+    }
+    for (let d = 1; d <= daysInMonth; d++) {
+      const key = dateKey(viewYear, viewMonth, d);
+      const count = (log[key] || []).length;
+      const classes = ['pgh-cal-day'];
+      if (count > 0) classes.push('has-study');
+      if (key === todayKey) classes.push('is-today');
+      if (key === selectedDateKey && detailMode === 'day') classes.push('is-selected');
+      html += `
+        <div class="${classes.join(' ')}" data-date="${key}">
+          <span>${d}</span>
+          ${count > 0 ? `<span class="pgh-cal-count">${count}개</span>` : ''}
+        </div>
+      `;
+    }
+    calDaysEl.innerHTML = html;
+
+    calDaysEl.querySelectorAll('.pgh-cal-day.has-study').forEach(el => {
+      el.addEventListener('click', () => openDayDetail(el.dataset.date));
+    });
+  }
+
+  function buildWordItemHtml(id) {
+    const w = CARDS_BY_ID[id];
+    if (!w) return '';
+    const isFav = getFavorites().includes(id);
+    const thumbImg = w.image ? `<img src="images/${w.image}" alt="${w.word}" onerror="this.remove()">` : '';
+    const restoreBtn = detailMode === 'dismissed'
+      ? `<button type="button" class="pgh-icon-btn pgh-restore-btn" data-id="${id}" title="다시 보기로 복구">↩</button>`
+      : `<button type="button" class="pgh-icon-btn pgh-fav-btn ${isFav ? 'is-active' : ''}" data-id="${id}" title="즐겨찾기">⭐</button>`;
+    return `
+      <tr data-id="${id}">
+        <td class="pgh-cell-thumb">${thumbImg}</td>
+        <td class="pgh-cell-word">${w.word}<div class="pgh-cell-pronun">${w.roman || ''}</div></td>
+        <td>${w.engWord || ''}</td>
+        <td>${w.engMeaning || ''}</td>
+        <td class="pgh-cell-native">${w.nativeWord || w.nativeMeaning || ''}</td>
+        <td class="pgh-cell-actions">
+          <button type="button" class="pgh-icon-btn pgh-speak-btn" data-word="${w.word}" title="발음 듣기">🔊</button>
+          ${restoreBtn}
+        </td>
+      </tr>
+    `;
+  }
+
+  function renderDetailList(forcedAll = false) {
+    const ids = detailIds;
+    if (!ids.length) {
+      detailList.innerHTML = `<tr><td colspan="6"><div class="pgh-empty-msg">아직 기록이 없어요.</div></td></tr>`;
+      detailPagination.innerHTML = '';
+      return;
+    }
+
+    const totalPages = Math.ceil(ids.length / PAGE_SIZE);
+    let pageIds = ids;
+    if (!forcedAll && ids.length > PAGE_SIZE) {
+      const start = (detailPage - 1) * PAGE_SIZE;
+      pageIds = ids.slice(start, start + PAGE_SIZE);
+    }
+
+    detailList.innerHTML = pageIds.map(buildWordItemHtml).join('');
+
+    if (!forcedAll && ids.length > PAGE_SIZE) {
+      detailPagination.innerHTML = `
+        <button type="button" class="pgh-cal-nav-btn" id="detailPrevPage">‹</button>
+        <span class="pgh-page-info">${detailPage} / ${totalPages}</span>
+        <button type="button" class="pgh-cal-nav-btn" id="detailNextPage">›</button>
+      `;
+      document.getElementById('detailPrevPage').addEventListener('click', () => {
+        if (detailPage > 1) { detailPage--; renderDetailList(); }
+      });
+      document.getElementById('detailNextPage').addEventListener('click', () => {
+        if (detailPage < totalPages) { detailPage++; renderDetailList(); }
+      });
+    } else {
+      detailPagination.innerHTML = '';
+    }
+
+    bindDetailItemEvents();
+    fillExtraLangHints(pageIds);
+  }
+
+  function bindDetailItemEvents() {
+    detailList.querySelectorAll('.pgh-speak-btn').forEach(btn => {
+      btn.addEventListener('click', () => speakKorean(btn.dataset.word));
+    });
+    detailList.querySelectorAll('.pgh-fav-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        toggleFavorite(btn.dataset.id);
+        btn.classList.toggle('is-active');
+        document.getElementById('favNum').textContent = getFavorites().length;
+        if (detailMode === 'favorites') openFavoritesList();
+      });
+    });
+    detailList.querySelectorAll('.pgh-restore-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        restoreDismissed(btn.dataset.id);
+        openDismissedList();
+      });
+    });
+  }
+
+  function printDetail() {
+    renderDetailList(true);
+    window.print();
+    renderDetailList();
+  }
+
+  function openDayDetail(key) {
+    detailMode = 'day';
+    selectedDateKey = key;
+    renderCalendar();
+    document.getElementById('detailResetBtn').style.display = 'none';
+
+    const log = getStudyLog();
+    detailIds = (log[key] || []).slice().reverse();
+    detailKey = key;
+    detailPage = 1;
+
+    const [y, m, d] = key.split('-').map(Number);
+    detailTitle.textContent = `${y}년 ${m}월 ${d}일 학습한 단어 (${detailIds.length}개)`;
+
+    renderDetailList();
+    detailCard.classList.add('is-open');
+    detailCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  function openFavoritesList() {
+    detailMode = 'favorites';
+    selectedDateKey = null;
+    renderCalendar();
+
+    detailIds = getFavorites();
+    detailKey = null;
+    detailPage = 1;
+    detailTitle.textContent = `⭐ ${typeof t === 'function' ? t('progressFavorites') : '즐겨찾기'} (${detailIds.length})`;
+    document.getElementById('detailResetBtn').style.display = 'none';
+
+    renderDetailList();
+    detailCard.classList.add('is-open');
+    detailCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  function openDismissedList() {
+    detailMode = 'dismissed';
+    selectedDateKey = null;
+    renderCalendar();
+
+    detailIds = getDismissed();
+    detailKey = null;
+    detailPage = 1;
+    detailTitle.textContent = `🚫 ${typeof t === 'function' ? t('progressDismissed') : '더 이상 안 보기'} (${detailIds.length})`;
+    document.getElementById('dismissedNum').textContent = detailIds.length;
+    document.getElementById('detailResetBtn').style.display = 'inline-flex';
+
+    renderDetailList();
+    detailCard.classList.add('is-open');
+    detailCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  function changeMonth(delta) {
+    viewMonth += delta;
+    if (viewMonth < 0) { viewMonth = 11; viewYear--; }
+    if (viewMonth > 11) { viewMonth = 0; viewYear++; }
+    selectedDateKey = null;
+    detailCard.classList.remove('is-open');
+    renderCalendar();
+  }
+
+  async function init() {
+    const lang = (typeof getSavedUserLang === 'function') ? getSavedUserLang() : 'en';
+    currentLang = lang;
+    try {
+      CARDS_BY_ID = await loadTopikData(lang);
+    } catch (e) {
+      document.getElementById('pghLoading').textContent = '데이터를 불러오지 못했어요: ' + e.message;
+      return;
+    }
+
+    const tpl = document.getElementById('pghContentTemplate');
+    const main = document.getElementById('pghMain');
+    main.innerHTML = '';
+    main.appendChild(tpl.content.cloneNode(true));
+    if (typeof applyI18n === 'function') applyI18n();
+
+    calTitle = document.getElementById('calTitle');
+    calWeekdaysEl = document.getElementById('calWeekdays');
+    calDaysEl = document.getElementById('calDays');
+    detailCard = document.getElementById('detailCard');
+    detailTitle = document.getElementById('detailTitle');
+    detailList = document.getElementById('detailList');
+    detailPagination = document.getElementById('detailPagination');
+
+    const now = new Date();
+    viewYear = now.getFullYear();
+    viewMonth = now.getMonth();
+
+    renderWeekdayHeader();
+    renderCalendar();
+
+    document.getElementById('prevMonthBtn').addEventListener('click', () => changeMonth(-1));
+    document.getElementById('nextMonthBtn').addEventListener('click', () => changeMonth(1));
+    document.getElementById('detailPrintBtn').addEventListener('click', printDetail);
+    document.getElementById('detailSpeakAllBtn').addEventListener('click', () => {
+      const words = detailIds.map(id => CARDS_BY_ID[id] && CARDS_BY_ID[id].word).filter(Boolean);
+      toggleSpeakKoreanSequence(words);
+    });
+    document.getElementById('favCard').addEventListener('click', openFavoritesList);
+    document.getElementById('dismissedCard').addEventListener('click', openDismissedList);
+
+    document.getElementById('detailResetBtn').addEventListener('click', () => {
+      if (detailMode !== 'dismissed') return;
+      if (!confirm('더 이상 안 보기 목록을 전부 초기화할까요? (숨겨졌던 단어가 다시 보이게 됩니다)')) return;
+      clearDismissed();
+      openDismissedList();
+    });
+
+    document.getElementById('resetLogBtn').addEventListener('click', () => {
+      if (!confirm('학습 이력(캘린더 기록)을 초기화할까요? 즐겨찾기/더 이상 안 보기는 유지됩니다.')) return;
+      clearStudyLog();
+      selectedDateKey = null;
+      detailCard.classList.remove('is-open');
+      renderCalendar();
+    });
+    document.getElementById('resetFavBtn').addEventListener('click', () => {
+      if (!confirm('즐겨찾기를 전부 초기화할까요?')) return;
+      clearFavorites();
+      renderCalendar();
+      if (detailMode === 'favorites') openFavoritesList();
+    });
+    document.getElementById('resetDismissedBtn').addEventListener('click', () => {
+      if (!confirm('더 이상 안 보기 목록을 전부 초기화할까요?')) return;
+      clearDismissed();
+      renderCalendar();
+      if (detailMode === 'dismissed') openDismissedList();
+    });
+  }
+
+  init();
+})();
+</script>
+<script src="js/nav-hangul.js"></script>
+</body>
+</html>
