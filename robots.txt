@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://wordsbean.github.io/topik-made-easy/sitemap.xml
