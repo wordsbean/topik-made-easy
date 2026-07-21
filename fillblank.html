@@ -69,9 +69,10 @@
 
   async function loadTopikData(langCode) {
     const scripts = ['data/topik_core.js', 'data/nvsentences.js'];
-    if (langCode !== 'en') scripts.push('data/topik_lang_' + langCode + '.js');
+    const useStatic = (typeof isStaticLangSupported === 'function') ? isStaticLangSupported(langCode) : (langCode !== 'en');
+    if (useStatic) scripts.push('data/topik_lang_' + langCode + '.js');
     await Promise.all(scripts.map(loadScript));
-    const langData = langCode !== 'en' ? window['TOPIK_LANG_' + langCode.toUpperCase()] : null;
+    const langData = useStatic ? window['TOPIK_LANG_' + langCode.toUpperCase()] : null;
     return TOPIK_CORE.map(w => ({
       ...w,
       nativeWord: langData && langData[w.id] ? langData[w.id].word : null,
@@ -104,6 +105,7 @@
   let WORDS = [];
   let puzzleCount = 0;
   let currentGrade = (typeof getSavedGrade === 'function') ? String(getSavedGrade()) : '1';
+  let currentLang = 'en';
   let currentItems = []; // { id, word, roman, engWord, engMeaning, nativeWord, image, grade, korSentence, engSentence, blankedSentence, choices:[{text,isCorrect}] }
 
   // =========================================================
@@ -253,6 +255,7 @@
     }).join('');
 
     renderAnswerGrid(currentItems);
+    fillExtraLangHints(currentItems, currentLang);
     bindInteractions();
   }
 
@@ -313,16 +316,31 @@
   // =========================================================
   // 5) 정답 요약 표
   // =========================================================
+  // 10개국(정적 지원)이 아닌 "기타 언어"일 때만: 이번에 뽑힌 문제 카드들만 실시간 번역으로 채움
+  async function fillExtraLangHints(items, langCode) {
+    const useStatic = (typeof isStaticLangSupported === 'function') ? isStaticLangSupported(langCode) : false;
+    if (useStatic || langCode === 'en' || typeof getNativeWordMeaning !== 'function') return;
+    await Promise.all(items.map(async (item, idx) => {
+      const result = await getNativeWordMeaning(item.id, item.word, item.engMeaning, langCode, null);
+      item.nativeWord = result.word;
+      item.nativeMeaning = result.meaning;
+      const hintEl = fbGrid.querySelector(`.fb-card[data-item="${idx}"] .fb-hint`);
+      if (hintEl && result.word) hintEl.innerHTML = `${item.engWord || ''}<span class="native">· ${result.word}</span>`;
+      const cell = answerGridEl.querySelector(`tr[data-item="${idx}"] .cell-native`);
+      if (cell && result.word) cell.textContent = result.word;
+    }));
+  }
+
   function renderAnswerGrid(items) {
-    const rows = items.map(w => {
+    const rows = items.map((w, idx) => {
       const thumbImg = w.image ? `<img src="${IMG_BASE}${w.image}" alt="${w.word}" onerror="this.remove()">` : '';
       return `
-        <tr>
+        <tr data-item="${idx}">
           <td class="cell-thumb">${thumbImg}</td>
           <td class="cell-word">${w.word}<div class="cell-pronun">${w.roman || ''}</div></td>
           <td>${w.engWord || ''}</td>
           <td>${w.engMeaning || ''}</td>
-          <td>${w.nativeWord || w.nativeMeaning || ''}</td>
+          <td class="cell-native">${w.nativeWord || w.nativeMeaning || ''}</td>
         </tr>
       `;
     }).join('');
@@ -349,6 +367,7 @@
   document.addEventListener('DOMContentLoaded', async () => {
     const newPuzzleBtn = document.getElementById('newPuzzleBtn');
     const lang = (typeof getSavedUserLang === 'function') ? getSavedUserLang() : 'en';
+    currentLang = lang;
     if (typeof initRomanToggle === 'function') initRomanToggle(document.getElementById('fbToolbar'), typeof t === 'function' ? t('romanToggle') : undefined);
 
     try {

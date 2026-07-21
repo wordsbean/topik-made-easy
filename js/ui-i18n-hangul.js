@@ -15,6 +15,7 @@ const UI_DICT_HANGUL = {
         home: '홈으로',
         newPuzzle: '새 퍼즐 만들기',
         generating: '만드는 중...',
+        loadingWords: '단어 불러오는 중...',
         showAnswer: '정답 보기',
         showProblem: '문제 보기',
         print: '인쇄',
@@ -78,6 +79,7 @@ const UI_DICT_HANGUL = {
         progressToday: '오늘 학습',
         progressFavorites: '즐겨찾기',
         progressDismissed: '더 이상 안 보기',
+        progressTagline: '캘린더로 보는 내 TOPIK 단어 학습 기록',
 
         prevWord: '이전',
         nextWord: '다음',
@@ -88,6 +90,7 @@ const UI_DICT_HANGUL = {
         home: 'Home',
         newPuzzle: 'New Puzzle',
         generating: 'Generating...',
+        loadingWords: 'Loading words...',
         showAnswer: 'Show Answers',
         showProblem: 'Show Questions',
         print: 'Print',
@@ -151,6 +154,7 @@ const UI_DICT_HANGUL = {
         progressToday: 'Studied Today',
         progressFavorites: 'Favorites',
         progressDismissed: 'Hidden Words',
+        progressTagline: 'Your TOPIK vocabulary study calendar',
 
         prevWord: 'Prev',
         nextWord: 'Next',

@@ -48,9 +48,9 @@
     <option value="5">5급</option>
     <option value="6">6급</option>
   </select>
-  <button id="newPuzzleBtn" class="nav-button">새 퍼즐 만들기</button>
-  <button id="toggleAnswerBtn" class="nav-button">정답 보기</button>
-  <button id="printBtn" class="nav-button">인쇄</button>
+  <button id="newPuzzleBtn" class="nav-button" data-i18n="newPuzzle">새 퍼즐 만들기</button>
+  <button id="toggleAnswerBtn" class="nav-button" data-i18n="showAnswer">정답 보기</button>
+  <button id="printBtn" class="nav-button" data-i18n="print">인쇄</button>
 </div>
 
 <script src="js/lang-pref-hangul.js"></script>
@@ -296,7 +296,7 @@
     }).join('');
 
     answerGridEl.innerHTML =
-      '<div class="answer-grid-header"><h3>정답 요약</h3>' +
+      '<div class="answer-grid-header"><h3>' + (typeof t === "function" ? t("answerSummary") : "정답 요약") + '</h3>' +
       '<span class="wf-header-controls"><button type="button" class="speak-btn" id="answerSpeakBtn" title="전체듣기">🔊</button></span></div>' +
       '<table><thead><tr><th class="cell-thumb"></th><th>단어</th><th>영어</th><th>영어뜻</th><th>모국어</th></tr></thead>' +
       '<tbody>' + rows + '</tbody></table>';
@@ -328,7 +328,7 @@
   document.addEventListener('DOMContentLoaded', async () => {
     const newPuzzleBtn = document.getElementById('newPuzzleBtn');
     newPuzzleBtn.disabled = true;
-    newPuzzleBtn.textContent = '단어 불러오는 중...';
+    newPuzzleBtn.textContent = typeof t === 'function' ? t('loadingWords') : '단어 불러오는 중...';
 
     try {
       const userLang = getSavedUserLang();
@@ -342,11 +342,11 @@
 
     function renderPuzzleWithLoading() {
       newPuzzleBtn.disabled = true;
-      newPuzzleBtn.textContent = '생성 중...';
+      newPuzzleBtn.textContent = typeof t === 'function' ? t('generating') : '생성 중...';
       setTimeout(() => {
         renderPuzzle();
         newPuzzleBtn.disabled = false;
-        newPuzzleBtn.textContent = '새 퍼즐 만들기';
+        newPuzzleBtn.textContent = typeof t === 'function' ? t('newPuzzle') : '새 퍼즐 만들기';
       }, 30);
     }
 
@@ -358,7 +358,7 @@
     toggleAnswerBtn.addEventListener('click', () => {
       document.body.classList.toggle('mode-answer');
       const isAnswer = document.body.classList.contains('mode-answer');
-      toggleAnswerBtn.textContent = isAnswer ? '문제 보기' : '정답 보기';
+      toggleAnswerBtn.textContent = typeof t === 'function' ? (isAnswer ? t('showProblem') : t('showAnswer')) : (isAnswer ? '문제 보기' : '정답 보기');
     });
 
     document.getElementById('printBtn').addEventListener('click', () => {
